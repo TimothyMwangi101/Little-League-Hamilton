@@ -1,15 +1,29 @@
 import { serve } from '@hono/node-server';
 import { OpenAPIHono } from '@hono/zod-openapi';
+import userRoutes from './routes/users.ts'
 
-const app = new OpenAPIHono()
+const app = new OpenAPIHono();
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')
-})
+});
+
+app.get('/login', ctx => {
+    return ctx.text("Login Page")
+});
+
+
+app.get('/register', ctx => {
+    return ctx.text("Register Page")
+});
+
+
+app.route('user', userRoutes);
+
 
 serve({
   fetch: app.fetch,
-  port: 3000
+  port: 3001
 }, (info) => {
   console.log(`Server is running on http://localhost:${info.port}`)
 })

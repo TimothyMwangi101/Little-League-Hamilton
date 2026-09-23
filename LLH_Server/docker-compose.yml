@@ -1,0 +1,22 @@
+## Source
+# https://www.reddit.com/r/docker/comments/1jkb49i/comment/mju3xku/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1
+
+services:
+  postgres:
+    image: postgres:18
+    container_name: postgres
+    hostname: ${DB_HOST}
+
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+    restart: unless-stopped
+    network_mode: "host"
+
+volumes:
+  pgdata:
