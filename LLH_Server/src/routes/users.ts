@@ -1,39 +1,33 @@
 import { sValidator } from "@hono/standard-validator";
 import { OpenAPIHono } from "@hono/zod-openapi";
-import z, { email, string, success, uuid } from "zod";
+import { decodeBase64 } from "hono/utils/encode";
+import { usersTable, createUserSchema } from "../db/schemas.ts";
+import { db } from "../db/db.ts";
+import { eq, lt, gte, ne } from 'drizzle-orm';
 
 const app = new OpenAPIHono();
 
-const createUserSchema = z.object({
-  userId: string(),
-  name: string(),
-  email: string(),
-});
 
-const users = [
-  {
-    userId: "1",
-    name: "Tim",
-    email: "email@gmail.com",
-  },
-  {
-    userId: "2",
-    name: "Tom",
-    email: "gmail@email.com",
-  },
-];
-
-app.get("/", (ctx) => {
-  if (users === null || users.length == 0) {
+app.get("/", async (ctx) => {
+  const users = await db.select().from(usersTable);
+  if (users.length === 0) {
     ctx.json({ ok: "No users" }, 200);
   }
   return ctx.json(users, 200);
 });
 
-app.get("/:userId", (ctx) => {
-  const userId = ctx.req.param("userId");
+app.get("/:userId", async (ctx) => {
+  const userId = parseInt(ctx.req.param("userId"));
 
-  const user = users.find((u) => u.userId === userId);
+  const user = await db.select({
+    email: usersTable.email,
+    createdAt: usersTable.createdAt
+  })
+    .from(usersTable)
+    .where(eq(usersTable.userId, userId))
+    .get();
+
+
   if (user === null) {
     return ctx.json({ error: "User not found" }, 404);
   }

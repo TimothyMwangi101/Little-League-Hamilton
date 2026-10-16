@@ -1,7 +1,8 @@
 import { serve } from '@hono/node-server';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import userRoutes from './routes/users.ts'
-import env from './data/env.ts';
+import { seedDatabase } from './db/db.ts';
+import  { env }  from '../lib/env.ts';
 
 const app = new OpenAPIHono();
 
@@ -9,13 +10,9 @@ app.get('/', (c) => {
   return c.text('Hello Hono!')
 });
 
-app.get('/login', ctx => {
-    return ctx.text("Login Page")
-});
-
-
-app.get('/register', ctx => {
-    return ctx.text("Register Page")
+app.get('/register', async (ctx) => {
+  await seedDatabase();
+  return ctx.text("Seeded Database")
 });
 
 

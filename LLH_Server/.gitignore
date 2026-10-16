@@ -27,8 +27,4 @@ lerna-debug.log*
 # misc
 .DS_Store
 
-#docker
-
-data/
-certs/
-
+*.db
