@@ -4,7 +4,7 @@ import z from "zod";
 const envSchema = z.object({
     DB_NAME: z.string().nonempty(),
     BETTER_AUTH_URL: z.url().nonempty(),
-    BETTER_AUTH_SECRET: z.string().nonempty(),
+    AUTH_SECRET: z.string().nonempty(),
     SERVER_PORT: z.coerce.number().int().positive(),
 });
 
