@@ -15,13 +15,11 @@
     "@hono/node-server": "^2.1.1",
     "@hono/standard-validator": "^0.4.0",
     "@hono/zod-openapi": "^1.6.3",
-    "better-sqlite3": "^13.0.3",
     "dotenv": "^17.4.2",
     "hono": "^4.13.13",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^26.1.1",
     "drizzle-kit": "^1.0.0-rc.5-ab785fc",
     "drizzle-orm": "^1.0.0-rc.4",

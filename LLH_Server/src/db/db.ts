@@ -1,5 +1,5 @@
 import { relations } from './relations.ts';
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { drizzle } from "drizzle-orm/node-sqlite";
 import * as schema from "./schemas.ts";
 
 import dotenv from "dotenv";
@@ -20,7 +20,7 @@ if (!db) {
 
 
 export async function createUser( email: string, password: string) {
-  const user = await db.insert(schema.usersTable).values({
+  const user = await db.insert(schema.users).values({
     email,
     password
   });
@@ -28,7 +28,7 @@ export async function createUser( email: string, password: string) {
 }
 
 export async function seedDatabase(email = "test@email.com", password = "password123") {
-  await db.insert(schema.usersTable).values({
+  await db.insert(schema.users).values({
     email,
     password
   });
