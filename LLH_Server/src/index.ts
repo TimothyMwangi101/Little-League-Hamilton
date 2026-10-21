@@ -1,4 +1,5 @@
-import "dotenv/config"
+import * as dotenv from 'dotenv';
+import { expand } from 'dotenv-expand';
 import { serve } from '@hono/node-server';
 import userRoutes from './routes/users.ts'
 import authRoutes from './routes/auth.ts'
@@ -7,10 +8,19 @@ import { UsersTable } from "./db/schemas.ts";
 import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
 
+expand(dotenv.config());
+
 const app = new Hono();
+const SERVER_PORT = process.env.SERVER_PORT;
+if (!SERVER_PORT)
+  throw new Error("port not in env")
+
+const SERVER_URL = process.env.SERVER_URL;
+if (!SERVER_URL)
+  throw new Error("server url not in env")
 
 app.route('user', userRoutes);
-app.route('auth', authRoutes)
+app.route('auth', authRoutes);
 
 app.onError((error, ctx) => {
   console.error(error);
@@ -51,23 +61,25 @@ app.post('/seed', async (ctx) => {
     "M1h#Xz8%dL"
   ]
 
-  for (let i = 0; i < emails.length; i++) {
-    const email = emails[i];
+  const requests = emails.map((email, i) => {
     const password = passwords[i];
-    await db.insert(UsersTable).values({ email, password })
-  }
+    return app.fetch(new Request(SERVER_URL + "/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    }));
+  });
 
-  return ctx.json({ data: "Seeded Database" }, StatusCodes.CREATED);
+  const responses = await Promise.all(requests);
+  const results = await Promise.all(responses.map(res => res.json()))
+
+  return ctx.json({ data: results }, StatusCodes.CREATED);
 });
 
-
-const SERVER_PORT = process.env.SERVER_PORT ?? "-1";
-if (!SERVER_PORT)
-  throw new Error("port not in env")
 
 serve({
   fetch: app.fetch,
   port: Number.parseInt(SERVER_PORT),
 }, () => {
-  console.log(`Server is running on http://localhost:${SERVER_PORT}`)
+  console.log(`Server is running on ${SERVER_URL}`)
 })

@@ -1,8 +1,10 @@
-import { UsersTable } from "../db/schemas.ts";
+import { createUserSchema, UsersTable } from "../db/schemas.ts";
 import { db } from "../db/db.ts";
 import { eq } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
+import { sValidator } from "@hono/standard-validator";
+import { de } from "zod/v4/locales";
 
 const app = new Hono();
 
@@ -28,7 +30,6 @@ app.get("/:id", async (ctx) => {
   return ctx.json({ data: user }, StatusCodes.OK);
 });
 
-
 app.delete("/:id", async (ctx) => {
   const id = Number.parseInt(ctx.req.param("id") ?? -1);
 
@@ -40,6 +41,12 @@ app.delete("/:id", async (ctx) => {
     .where(eq(UsersTable.id, id));
 
   return ctx.json({ data: "User deleted" }, StatusCodes.OK);
+});
+
+app.delete("/", async (ctx) => {
+  await db.delete(UsersTable);
+
+  return ctx.json({ data: "Deleted all users" }, StatusCodes.OK);
 });
 
 export default app;

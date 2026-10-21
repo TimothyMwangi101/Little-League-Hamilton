@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { integer, text, sqliteTable, } from "drizzle-orm/sqlite-core";
-import { createInsertSchema } from 'drizzle-orm/zod';
+import { createInsertSchema, createUpdateSchema } from 'drizzle-orm/zod';
+import z from "zod";
 
 export const UsersTable = sqliteTable("users", {
   id: integer({ mode: "number" }).primaryKey({ autoIncrement: true }),
@@ -14,3 +15,7 @@ export const createUserSchema = createInsertSchema(UsersTable)
 
 export const loginSchema = createInsertSchema(UsersTable)
   .pick({ email: true, password: true });
+
+export const resetPasswordSchema = createUpdateSchema(UsersTable)
+    .pick({ email: true })
+    .extend({ newPassword: z.string().nonempty() })
