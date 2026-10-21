@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
 import { UsersTable } from "./users.ts";
+import { createInsertSchema } from 'drizzle-orm/zod';
 
 export const ApiKeysTable = sqliteTable("api_keys", {
   id: integer({ mode: "number" }).primaryKey({ autoIncrement: true }),
@@ -11,3 +12,5 @@ export const ApiKeysTable = sqliteTable("api_keys", {
   keyPrefix: text({ length: 8 }).notNull(),
   createdAt: text().default(sql`(CURRENT_DATE)`),
 });
+
+export const createKeySchema = createInsertSchema(ApiKeysTable).pick({ name: true })

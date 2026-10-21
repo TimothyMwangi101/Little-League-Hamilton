@@ -1,5 +1,5 @@
 import { sValidator } from "@hono/standard-validator";
-import { ApiKeysTable, UsersTable, createUserSchema } from "../db/schemas.ts";
+import { ApiKeysTable, createKeySchema } from "../db/schemas.ts";
 import { db } from "../db/db.ts";
 import { eq } from 'drizzle-orm';
 import { basicAuth } from "hono/basic-auth";
@@ -41,9 +41,12 @@ app.get("/", async (ctx) => {
         createdAt: ApiKeysTable.createdAt
     })
     .from(ApiKeysTable)
+    .where(eq(ApiKeysTable.id, id)) ?? []
     
     return ctx.json(keys)
-})
+});
+
+app.post("/", sValidator("json", createKeySchema))
 
 
 export default app;
