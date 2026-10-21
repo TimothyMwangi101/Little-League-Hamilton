@@ -1,5 +1,5 @@
 import { sValidator } from "@hono/standard-validator";
-import { users, createUserSchema } from "../db/schemas.ts";
+import { UsersTable, createUserSchema } from "../db/schemas.ts";
 import { db } from "../db/db.ts";
 import { eq } from 'drizzle-orm';
 import { basicAuth } from "hono/basic-auth";
@@ -10,15 +10,15 @@ import { Hono } from "hono";
 const app = new Hono();
 
 app.get("/", async (ctx) => {
-  return ctx.json({ users: await db.select().from(users) }, StatusCodes.OK);
+  return ctx.json({ users: await db.select().from(UsersTable) }, StatusCodes.OK);
 });
 
 app.get("/:userId", async (ctx) => {
   const userId = parseInt(ctx.req.param("userId"));
 
   const user = await db.select()
-    .from(users)
-    .where(eq(users.id, userId))
+    .from(UsersTable)
+    .where(eq(UsersTable.id, userId))
     .get();
 
   if (!user) {
@@ -37,8 +37,8 @@ app.delete("/:userId", async (ctx) => {
     if (!userId)
       return ctx.json({error: "undefined user id"}, StatusCodes.BAD_REQUEST)
     
-    await db.delete(users)
-    .where(eq(users.id, (userId as unknown) as number));
+    await db.delete(UsersTable)
+    .where(eq(UsersTable.id, (userId as unknown) as number));
 
     return ctx.json(StatusCodes.OK);
   } catch(err) {

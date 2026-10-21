@@ -1,7 +1,7 @@
 import { sValidator } from "@hono/standard-validator";
 import { scrypt, randomBytes, timingSafeEqual } from "node:crypto"
 import { Hono } from 'hono'
-import { users, createUserSchema, loginSchema } from "../db/schemas.ts"
+import { UsersTable, createUserSchema, loginSchema } from "../db/schemas.ts"
 import { db } from "../db/db.ts"
 import { eq } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
@@ -23,13 +23,15 @@ type JWTPayload = {
 if (!AUTH_SECRET)
     throw new Error("auth secret not loaded from env")
 
+
+// https://hono.dev/docs/helpers/jwt#payload-validation
 app.post("/register", sValidator("json", createUserSchema), async (ctx) => {
     let { email, password } = ctx.req.valid("json");
 
     const [exists] = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.email, email));
+        .select({ id: UsersTable.id })
+        .from(UsersTable)
+        .where(eq(UsersTable.email, email));
 
     if (exists)
         return ctx.json({ error: "User already exists" }, StatusCodes.CONFLICT);
@@ -37,9 +39,9 @@ app.post("/register", sValidator("json", createUserSchema), async (ctx) => {
     password = await hashPassword(password);
 
     const user = await db
-        .insert(users)
+        .insert(UsersTable)
         .values({ email, password })
-        .returning({ id: users.id, email: users.email })
+        .returning({ id: UsersTable.id, email: UsersTable.email })
 
     return ctx.json(user, 201);
 });
@@ -49,8 +51,8 @@ app.post("/login", sValidator("json", loginSchema), async (ctx) => {
 
     const [user] = await db
         .select()
-        .from(users)
-        .where(eq(users.email, email));
+        .from(UsersTable)
+        .where(eq(UsersTable.email, email));
 
     if (!user)
         return ctx.json({ error: "Invalid email or password" }, 401)

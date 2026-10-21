@@ -13,6 +13,6 @@ if (!db) {
 
 export async function createUser(user: z.infer<typeof schema.createUserSchema>, returning = false) {
   if (returning)
-    return await db.insert(schema.users).values(user).returning()
-  await db.insert(schema.users).values(user);
+    return await db.insert(schema.UsersTable).values(user).returning()
+  await db.insert(schema.UsersTable).values(user);
 }

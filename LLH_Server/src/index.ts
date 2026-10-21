@@ -2,7 +2,7 @@ import "dotenv/config"
 import { serve } from '@hono/node-server';
 import userRoutes from './routes/users.ts'
 import { db } from "./db/db.ts"
-import { users } from "./db/schemas.ts";
+import { UsersTable } from "./db/schemas.ts";
 import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
 
@@ -42,7 +42,7 @@ app.post('/seed', async (ctx) => {
     for (let i = 0; i < emails.length; i++) {
       const email = emails[i];
       const password = passwords[i];
-      await db.insert(users).values({ email, password })  
+      await db.insert(UsersTable).values({ email, password })  
     }
 
     return ctx.json("Seeded Database", StatusCodes.CREATED)
