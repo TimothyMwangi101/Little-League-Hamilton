@@ -43,7 +43,7 @@ app.get("/", async (ctx) => {
     .from(ApiKeysTable)
     .where(eq(ApiKeysTable.id, id)) ?? []
     
-    return ctx.json(keys)
+    return ctx.json({ data: keys }, StatusCodes.OK);
 });
 
 app.post("/", sValidator("json", createKeySchema))

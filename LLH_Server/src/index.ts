@@ -12,10 +12,17 @@ const app = new Hono();
 app.route('user', userRoutes);
 app.route('auth', authRoutes)
 
+app.onError((error, ctx) => {
+  console.error(error);
+  return ctx.json({ error: "Internal server error" }, StatusCodes.INTERNAL_SERVER_ERROR);
+});
 
+app.notFound((ctx) => {
+  return ctx.json({ error: "Not found" }, StatusCodes.NOT_FOUND);
+});
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
+app.get('/', (ctx) => {
+  return ctx.json({ data: "Hello Hono!" }, StatusCodes.OK);
 });
 
 app.post('/seed', async (ctx) => {
@@ -44,29 +51,23 @@ app.post('/seed', async (ctx) => {
     "M1h#Xz8%dL"
   ]
 
-  try {
-    for (let i = 0; i < emails.length; i++) {
-      const email = emails[i];
-      const password = passwords[i];
-      await db.insert(UsersTable).values({ email, password })  
-    }
-
-    return ctx.json("Seeded Database", StatusCodes.CREATED)
-
-  } catch (error) {
-    return ctx.json(error, StatusCodes.INTERNAL_SERVER_ERROR)
+  for (let i = 0; i < emails.length; i++) {
+    const email = emails[i];
+    const password = passwords[i];
+    await db.insert(UsersTable).values({ email, password })
   }
 
+  return ctx.json({ data: "Seeded Database" }, StatusCodes.CREATED);
 });
 
 
-const SERVER_PORT = process.env.SERVER_PORT;
+const SERVER_PORT = process.env.SERVER_PORT ?? "-1";
 if (!SERVER_PORT)
-  throw new Error("pornt not in env")
+  throw new Error("port not in env")
 
 serve({
   fetch: app.fetch,
-  port: (SERVER_PORT as unknown) as number,
+  port: Number.parseInt(SERVER_PORT),
 }, () => {
   console.log(`Server is running on http://localhost:${SERVER_PORT}`)
 })

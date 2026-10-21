@@ -20,7 +20,12 @@ if (!AUTH_SECRET)
 
 
 // https://hono.dev/docs/helpers/jwt#payload-validation
-app.post("/register", sValidator("json", createUserSchema), async (ctx) => {
+app.post("/register", sValidator("json", createUserSchema, (result, ctx) => {
+    if (!result.success) {
+        console.error(result.error)
+        return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
+    }
+}), async (ctx) => {
     let { email, password } = ctx.req.valid("json");
 
     const [exists] = await db
@@ -38,10 +43,15 @@ app.post("/register", sValidator("json", createUserSchema), async (ctx) => {
         .values({ email, password })
         .returning({ id: UsersTable.id, email: UsersTable.email })
 
-    return ctx.json(user, 201);
+    return ctx.json({ data: user }, StatusCodes.CREATED);
 });
 
-app.post("/login", sValidator("json", loginSchema), async (ctx) => {
+app.post("/login", sValidator("json", loginSchema, (result, ctx) => {
+    if (!result.success) {
+        console.error(result.error)
+        return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
+    }
+}), async (ctx) => {
     const { email, password } = ctx.req.valid("json");
 
     const [user] = await db
@@ -50,11 +60,11 @@ app.post("/login", sValidator("json", loginSchema), async (ctx) => {
         .where(eq(UsersTable.email, email));
 
     if (!user)
-        return ctx.json({ error: "Invalid email or password" }, 401)
+        return ctx.json({ error: "Invalid email or password" }, StatusCodes.UNAUTHORIZED);
 
     const valid = await compare(password, user.password);
     if (!valid)
-        return ctx.json({ error: "Invalid email or password" }, 401)
+        return ctx.json({ error: "Invalid email or password" }, StatusCodes.UNAUTHORIZED);
 
     const payload: JWTPayload = {
         exp: Math.floor(Date.now() / 1000) * jwtExpTime,    // exp in 5 mins
@@ -63,7 +73,7 @@ app.post("/login", sValidator("json", loginSchema), async (ctx) => {
     }
 
     const token = await sign(payload, AUTH_SECRET, "HS256")         // signing with my secret value that i can use to decode later
-    return ctx.json(token)
+    return ctx.json({ data: token }, StatusCodes.OK);
 })
 
 

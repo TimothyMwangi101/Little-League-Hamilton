@@ -7,39 +7,39 @@ import { Hono } from "hono";
 const app = new Hono();
 
 app.get("/", async (ctx) => {
-  return ctx.json({ users: await db.select().from(UsersTable) }, StatusCodes.OK);
+  return ctx.json({ data: await db.select().from(UsersTable) }, StatusCodes.OK);
 });
 
-app.get("/:userId", async (ctx) => {
-  const userId = parseInt(ctx.req.param("userId"));
+app.get("/:id", async (ctx) => {
+  const id = Number.parseInt(ctx.req.param("id") ?? -1);
 
-  const user = await db.select()
+  if (id < 0) {
+    return ctx.json({ error: "Invalid user id" }, StatusCodes.BAD_REQUEST);
+  }
+
+  const [user] = await db.select()
     .from(UsersTable)
-    .where(eq(UsersTable.id, userId))
-    .get();
+    .where(eq(UsersTable.id, id));
 
   if (!user) {
-    return ctx.json({ error: "User not found" }, 404);
+    return ctx.json({ error: "User not found" }, StatusCodes.NOT_FOUND);
   }
 
-  return ctx.json(user);
+  return ctx.json({ data: user }, StatusCodes.OK);
 });
 
 
-app.delete("/:userId", async (ctx) => {
-  try {
-    const userId = ctx.req.param("id");
+app.delete("/:id", async (ctx) => {
+  const id = Number.parseInt(ctx.req.param("id") ?? -1);
 
-    if (!userId)
-      return ctx.json({error: "undefined user id"}, StatusCodes.BAD_REQUEST)
-    
-    await db.delete(UsersTable)
-    .where(eq(UsersTable.id, (userId as unknown) as number));
-
-    return ctx.json(StatusCodes.OK);
-  } catch(err) {
-    return ctx.json(StatusCodes.BAD_REQUEST)
+  if (id < 0) {
+    return ctx.json({ error: "Invalid user id" }, StatusCodes.BAD_REQUEST);
   }
+
+  await db.delete(UsersTable)
+    .where(eq(UsersTable.id, id));
+
+  return ctx.json({ data: "User deleted" }, StatusCodes.OK);
 });
 
 export default app;
