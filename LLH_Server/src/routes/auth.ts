@@ -1,5 +1,5 @@
 import { sValidator } from "@hono/standard-validator";
-import { scrypt, randomBytes, timingSafeEqual } from "node:crypto"
+import { hashPassword, comparePasswords } from "../lib/crypto.ts"
 import { Hono } from 'hono'
 import { UsersTable, createUserSchema, loginSchema, resetPasswordSchema } from "../db/schemas.ts"
 import { db } from "../db/db.ts"
@@ -9,8 +9,7 @@ import { jwt, decode, sign, verify } from 'hono/jwt';
 import "dotenv/config"
 import type { JWTPayload } from "./apiKeys.ts";
 
-const keyLen = 64;
-const randomBytesSize = 20;
+
 const app = new Hono();
 const jwtExpTime = 60 * 5;
 const AUTH_SECRET = process.env.AUTH_SECRET;
@@ -62,7 +61,7 @@ app.post("/login", sValidator("json", loginSchema, (result, ctx) => {
     if (!user)
         return ctx.json({ error: "Invalid email or password" }, StatusCodes.UNAUTHORIZED);
 
-    const valid = await compare(password, user.password);
+    const valid = await comparePasswords(password, user.password);
     if (!valid)
         return ctx.json({ error: "Invalid email or password" }, StatusCodes.UNAUTHORIZED);
 
@@ -73,7 +72,7 @@ app.post("/login", sValidator("json", loginSchema, (result, ctx) => {
     }
 
     const token = await sign(payload, AUTH_SECRET, "HS256")     // signing with my secret value that i can use to decode later
-    return ctx.json({ data: token }, StatusCodes.OK);
+    return ctx.json({ data: token }, StatusCodes.CREATED);
 })
 
 app.post("/reset-password", sValidator("json", resetPasswordSchema, (result, ctx) => {
@@ -107,39 +106,8 @@ app.post("/reset-password", sValidator("json", resetPasswordSchema, (result, ctx
     if(!updatedUser)
         return ctx.json({ error: "Reset password failed" }, StatusCodes.INTERNAL_SERVER_ERROR)
     
-    return ctx.json({ data: null }, StatusCodes.OK)
+    return ctx.json({ data: {} }, StatusCodes.OK)
 })
-
-
-/**
- * Used to hash a password
- * @param {string} password
- * @returns {string} The salt and hash
- * @see https://dev.to/farnabaz/hash-your-passwords-with-scrypt-using-nodejs-crypto-module-316k#comment-24a9e
- */
-export async function hashPassword(password: string): Promise<string> {
-    return new Promise((res, rej) => {
-        const salt = randomBytes(randomBytesSize).toString("hex");
-
-        scrypt(password, salt, keyLen, (err, derivedKey) => {
-            if (err) return rej(err);
-
-            res(`${salt}:${derivedKey.toString("hex")}`);
-        });
-    });
-}
-
-export async function compare(password: string, hashedPassword: string): Promise<boolean> {
-    return new Promise((res, rej) => {
-        const [salt, hashKey] = hashedPassword.split(":");
-        const hashBuffer = Buffer.from(hashKey, "hex");
-        scrypt(password, salt, keyLen, (err, derivedKey) => {
-            if (err) return rej(err);
-
-            res(timingSafeEqual(hashBuffer, derivedKey));
-        });
-    })
-}
 
 
 export default app;

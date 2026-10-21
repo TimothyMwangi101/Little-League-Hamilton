@@ -76,7 +76,6 @@ app.post('/seed', async (ctx) => {
   return ctx.json({ data: results }, StatusCodes.CREATED);
 });
 
-
 serve({
   fetch: app.fetch,
   port: Number.parseInt(SERVER_PORT),
