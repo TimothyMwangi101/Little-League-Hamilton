@@ -7,18 +7,13 @@ import { eq } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
 import { jwt, decode, sign, verify } from 'hono/jwt';
 import "dotenv/config"
+import type { JWTPayload } from "./apiKeys.ts";
 
 const keyLen = 64;
 const randomBytesSize = 20;
 const app = new Hono();
 const jwtExpTime = 60 * 5;
 const AUTH_SECRET = process.env.AUTH_SECRET;
-
-type JWTPayload = {
-    exp: number,
-    id: number,
-    email: string
-}
 
 if (!AUTH_SECRET)
     throw new Error("auth secret not loaded from env")
@@ -67,8 +62,8 @@ app.post("/login", sValidator("json", loginSchema), async (ctx) => {
         email: user.email,
     }
 
-    const token = await sign(payload, AUTH_SECRET)         // signing with my secret value that i can use to decode later
-    return ctx.json({ token })
+    const token = await sign(payload, AUTH_SECRET, "HS256")         // signing with my secret value that i can use to decode later
+    return ctx.json(token)
 })
 
 

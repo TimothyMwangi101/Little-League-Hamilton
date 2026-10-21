@@ -1,12 +1,18 @@
 import "dotenv/config"
 import { serve } from '@hono/node-server';
 import userRoutes from './routes/users.ts'
+import authRoutes from './routes/auth.ts'
 import { db } from "./db/db.ts"
 import { UsersTable } from "./db/schemas.ts";
 import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
 
 const app = new Hono();
+
+app.route('user', userRoutes);
+app.route('auth', authRoutes)
+
+
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')
@@ -53,8 +59,6 @@ app.post('/seed', async (ctx) => {
 
 });
 
-
-app.route('user', userRoutes);
 
 const SERVER_PORT = process.env.SERVER_PORT;
 if (!SERVER_PORT)

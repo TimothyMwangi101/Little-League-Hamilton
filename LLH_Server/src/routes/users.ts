@@ -1,9 +1,6 @@
-import { sValidator } from "@hono/standard-validator";
-import { UsersTable, createUserSchema } from "../db/schemas.ts";
+import { UsersTable } from "../db/schemas.ts";
 import { db } from "../db/db.ts";
 import { eq } from 'drizzle-orm';
-import { basicAuth } from "hono/basic-auth";
-import { compare, hashPassword } from "../lib/auth.ts";
 import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
 
@@ -27,7 +24,6 @@ app.get("/:userId", async (ctx) => {
 
   return ctx.json(user);
 });
-
 
 
 app.delete("/:userId", async (ctx) => {
