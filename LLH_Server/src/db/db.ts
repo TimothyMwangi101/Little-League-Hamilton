@@ -1,36 +1,18 @@
+import "dotenv/config"
 import { relations } from './relations.ts';
 import { drizzle } from "drizzle-orm/node-sqlite";
 import * as schema from "./schemas.ts";
+import type { z } from "zod";
 
-import dotenv from "dotenv";
-dotenv.config();
+const DB_NAME = process.env.DB_NAME ?? "llh.db";
 
-const dbName = process.env.DB_NAME;
-if (!dbName) {
-  throw new Error("DB_NAME is not defined in .env file");
-}
-
-
-export const db = drizzle(dbName, { relations });
+export const db = drizzle(DB_NAME, { relations });
 if (!db) {
   throw new Error("Failed to connect to the database");
 }
 
-
-
-
-export async function createUser( email: string, password: string) {
-  const user = await db.insert(schema.users).values({
-    email,
-    password
-  });
-  return user;
+export async function createUser(user: z.infer<typeof schema.createUserSchema>, returning = false) {
+  if (returning)
+    return await db.insert(schema.users).values(user).returning()
+  await db.insert(schema.users).values(user);
 }
-
-export async function seedDatabase(email = "test@email.com", password = "password123") {
-  await db.insert(schema.users).values({
-    email,
-    password
-  });
-}
-

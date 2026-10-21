@@ -1,12 +1,18 @@
 import { defineConfig } from "drizzle-kit";
-import "dotenv/config";
+import "dotenv"
+import { config } from "dotenv";
+config();
+
+const DB_NAME = process.env.DB_NAME;
+if(!DB_NAME)
+  throw new Error("no db name in env")
 
 export default defineConfig({
-  out: "./drizzle",
+  out: "./src/db/migrations",
   schema: "./src/db/schemas.ts",
   dialect: "sqlite",
   verbose: true,
   dbCredentials: {
-    url: process.env.DB_NAME!,
+    url: DB_NAME,
   },
 });

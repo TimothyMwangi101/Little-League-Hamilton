@@ -1,4 +1,0 @@
-DB_NAME=llh.db
-BETTER_AUTH_URL=http://localhost:3000   # Base URL of your app
-AUTH_SECRET=dLIH6A3BH6UaXdhfSDgKU7IACs71yv8g
-SERVER_PORT=3000
