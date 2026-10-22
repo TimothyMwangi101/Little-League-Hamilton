@@ -11,6 +11,9 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "rewriteRelativeImportExtensions": true,
+    "paths": {
+      "@schemas/*": ["../shared"],
+    },
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "src/db/schemas.ts"]
 }

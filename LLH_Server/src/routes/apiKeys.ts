@@ -1,5 +1,6 @@
 import { sValidator } from "@hono/standard-validator";
 import { ApiKeysTable, createKeySchema } from "../db/schemas.ts";
+import type { ApiSuccess, ApiFail } from "../db/schemas.ts";
 import { db } from "../db/db.ts";
 import { eq } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
@@ -43,11 +44,16 @@ app.get("/", async (ctx) => {
         .from(ApiKeysTable)
         .where(eq(ApiKeysTable.id, id)) ?? []
 
-    return ctx.json({ data: keys }, StatusCodes.OK);
+    return ctx.json({ data: keys } satisfies ApiSuccess<typeof keys>, StatusCodes.OK);
 });
 
 // create keys
-app.post("/", sValidator("json", createKeySchema), async (ctx) => {
+app.post("/", sValidator("json", createKeySchema, (result, ctx) => {
+    if (!result.success) {
+        console.error(result.error);
+        return ctx.json({ error: "Invalid request body" } satisfies ApiFail, StatusCodes.BAD_REQUEST);
+    }
+}), async (ctx) => {
     const { id } = ctx.var.jwtPayload;
     const { name } = ctx.req.valid("json");
     const { raw, hash, prefix } = generateApiKey();
@@ -57,7 +63,8 @@ app.post("/", sValidator("json", createKeySchema), async (ctx) => {
         .returning({ id: ApiKeysTable.id });
 
     // shown the full key once only as sec mesure
-    ctx.json({ data: { key: raw, id: apiKey.id } }, StatusCodes.CREATED);
+    const res = { key: raw, id: apiKey.id };
+    return ctx.json({ data: res } satisfies ApiSuccess<typeof res>, StatusCodes.CREATED);
 })
 
 

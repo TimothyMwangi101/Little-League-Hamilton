@@ -5,6 +5,7 @@ import userRoutes from './routes/users.ts'
 import authRoutes from './routes/auth.ts'
 import { db } from "./db/db.ts"
 import { UsersTable } from "./db/schemas.ts";
+import type { ApiFail, ApiSuccess } from "./db/schemas.ts";
 import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
 
@@ -24,15 +25,15 @@ app.route('auth', authRoutes);
 
 app.onError((error, ctx) => {
   console.error(error);
-  return ctx.json({ error: "Internal server error" }, StatusCodes.INTERNAL_SERVER_ERROR);
+  return ctx.json({ error: "Internal server error" } satisfies ApiFail, StatusCodes.INTERNAL_SERVER_ERROR);
 });
 
 app.notFound((ctx) => {
-  return ctx.json({ error: "Not found" }, StatusCodes.NOT_FOUND);
+  return ctx.json({ error: "Not found" } satisfies ApiFail, StatusCodes.NOT_FOUND);
 });
 
 app.get('/', (ctx) => {
-  return ctx.json({ data: "Hello Hono!" }, StatusCodes.OK);
+  return ctx.json({ data: "Hello Hono!" } satisfies ApiSuccess<string>, StatusCodes.OK);
 });
 
 app.post('/seed', async (ctx) => {
@@ -73,7 +74,7 @@ app.post('/seed', async (ctx) => {
   const responses = await Promise.all(requests);
   const results = await Promise.all(responses.map(res => res.json()))
 
-  return ctx.json({ data: results }, StatusCodes.CREATED);
+  return ctx.json({ data: results } satisfies ApiSuccess<typeof results>, StatusCodes.CREATED);
 });
 
 serve({

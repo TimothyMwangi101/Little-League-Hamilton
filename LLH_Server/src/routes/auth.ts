@@ -2,6 +2,7 @@ import { sValidator } from "@hono/standard-validator";
 import { hashPassword, comparePasswords } from "../lib/crypto.ts"
 import { Hono } from 'hono'
 import { UsersTable, createUserSchema, loginSchema, resetPasswordSchema } from "../db/schemas.ts"
+import type { ApiFail, ApiSuccess } from "../db/schemas.ts";
 import { db } from "../db/db.ts"
 import { eq } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
@@ -22,7 +23,7 @@ if (!AUTH_SECRET)
 app.post("/register", sValidator("json", createUserSchema, (result, ctx) => {
     if (!result.success) {
         console.error(result.error)
-        return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
+        return ctx.json({ error: "Invalid request body" } satisfies ApiFail, StatusCodes.BAD_REQUEST);
     }
 }), async (ctx) => {
     let { email, password } = ctx.req.valid("json");
@@ -33,7 +34,7 @@ app.post("/register", sValidator("json", createUserSchema, (result, ctx) => {
         .where(eq(UsersTable.email, email));
 
     if (exists)
-        return ctx.json({ error: "User already exists" }, StatusCodes.CONFLICT);
+        return ctx.json({ error: "User already exists" } satisfies ApiFail, StatusCodes.CONFLICT);
 
     password = await hashPassword(password);
 
@@ -42,13 +43,13 @@ app.post("/register", sValidator("json", createUserSchema, (result, ctx) => {
         .values({ email, password })
         .returning({ id: UsersTable.id, email: UsersTable.email })
 
-    return ctx.json({ data: user }, StatusCodes.CREATED);
+    return ctx.json({ data: user } satisfies ApiSuccess<typeof user>, StatusCodes.CREATED);
 });
 
 app.post("/login", sValidator("json", loginSchema, (result, ctx) => {
     if (!result.success) {
         console.error(result.error)
-        return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
+        return ctx.json({ error: "Invalid request body" } satisfies ApiFail, StatusCodes.BAD_REQUEST);
     }
 }), async (ctx) => {
     const { email, password } = ctx.req.valid("json");
@@ -59,11 +60,11 @@ app.post("/login", sValidator("json", loginSchema, (result, ctx) => {
         .where(eq(UsersTable.email, email));
 
     if (!user)
-        return ctx.json({ error: "Invalid email or password" }, StatusCodes.UNAUTHORIZED);
+        return ctx.json({ error: "Invalid email or password" } satisfies ApiFail, StatusCodes.UNAUTHORIZED);
 
     const valid = await comparePasswords(password, user.password);
     if (!valid)
-        return ctx.json({ error: "Invalid email or password" }, StatusCodes.UNAUTHORIZED);
+        return ctx.json({ error: "Invalid email or password" } satisfies ApiFail, StatusCodes.UNAUTHORIZED);
 
     const payload: JWTPayload = {
         exp: Math.floor(Date.now() / 1000) * jwtExpTime,        // exp in 5 mins
@@ -72,20 +73,20 @@ app.post("/login", sValidator("json", loginSchema, (result, ctx) => {
     }
 
     const token = await sign(payload, AUTH_SECRET, "HS256")     // signing with my secret value that i can use to decode later
-    return ctx.json({ data: token }, StatusCodes.CREATED);
+    return ctx.json({ data: token } satisfies ApiSuccess<string>, StatusCodes.CREATED);
 })
 
 app.post("/reset-password", sValidator("json", resetPasswordSchema, (result, ctx) => {
     if (!result.success) {
         console.error(result.error)
-        return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
+        return ctx.json({ error: "Invalid request body" } satisfies ApiFail, StatusCodes.BAD_REQUEST);
     }
 }), async (ctx) => {
     let { email, newPassword } = ctx.req.valid("json");
 
     if(!email) {
         console.error("Email was undefined")
-        return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
+        return ctx.json({ error: "Invalid request body" } satisfies ApiFail, StatusCodes.BAD_REQUEST);
     }
 
     const [user] = await db
@@ -94,7 +95,7 @@ app.post("/reset-password", sValidator("json", resetPasswordSchema, (result, ctx
         .where(eq(UsersTable.email, email));
 
     if (!user)
-        return ctx.json({ error: "Invalid email or password" }, StatusCodes.UNAUTHORIZED);
+        return ctx.json({ error: "Invalid email or password" } satisfies ApiFail, StatusCodes.UNAUTHORIZED);
 
     newPassword = await hashPassword(newPassword);
 
@@ -104,9 +105,9 @@ app.post("/reset-password", sValidator("json", resetPasswordSchema, (result, ctx
     .returning({ updatedUserId : UsersTable.id })
 
     if(!updatedUser)
-        return ctx.json({ error: "Reset password failed" }, StatusCodes.INTERNAL_SERVER_ERROR)
+        return ctx.json({ error: "Reset password failed" } satisfies ApiFail, StatusCodes.INTERNAL_SERVER_ERROR)
     
-    return ctx.json({ data: {} }, StatusCodes.OK)
+    return ctx.json({ data: {} } satisfies ApiSuccess<Record<string, never>>, StatusCodes.OK)
 })
 
 
