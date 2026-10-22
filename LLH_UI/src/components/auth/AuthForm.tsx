@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import type { z } from 'zod'
-import type { ApiResponse, createUserSchema } from '../../LLH_Server/src/db/schemas'
+import type { ApiResponse, createUserSchema } from '@backend/db/schemas'
 
 type AuthFormValues = z.infer<typeof createUserSchema>
 
@@ -36,9 +36,9 @@ function AuthForm({ isRegistering, onModeChange }: AuthFormProps) {
       const result: unknown = await response.json()
       const responseError =
         typeof result === 'object' &&
-        result !== null &&
-        'error' in result &&
-        typeof result.error === 'string'
+          result !== null &&
+          'error' in result &&
+          typeof result.error === 'string'
           ? result.error
           : ''
 
