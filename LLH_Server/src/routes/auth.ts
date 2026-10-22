@@ -38,7 +38,7 @@ app.post("/register", sValidator("json", createUserSchema, (result, ctx) => {
 
     password = await hashPassword(password);
 
-    const user = await db
+    const [user] = await db
         .insert(UsersTable)
         .values({ email, password })
         .returning({ id: UsersTable.id, email: UsersTable.email })
@@ -107,7 +107,7 @@ app.post("/reset-password", sValidator("json", resetPasswordSchema, (result, ctx
     if(!updatedUser)
         return ctx.json({ error: "Reset password failed" } satisfies ApiFail, StatusCodes.INTERNAL_SERVER_ERROR)
     
-    return ctx.json({ data: {} } satisfies ApiSuccess<Record<string, never>>, StatusCodes.OK)
+    return ctx.json({ data: null } satisfies ApiSuccess<null>, StatusCodes.OK)
 })
 
 
