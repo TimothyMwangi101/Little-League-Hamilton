@@ -32,8 +32,7 @@ $env:PATH = "C:\Users\000937691\Documents\Little-League-Hamilton\node-local;$env
 node -v
 npm -v
 
-# for better auth dependancy
-## $env:PYTHON="C:\ProgramData\anaconda3\python.exe"
+$env:PYTHON="C:\ProgramData\anaconda3\python.exe"
 
 
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
