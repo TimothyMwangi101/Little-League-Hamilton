@@ -1,121 +1,43 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import AuthForm from './AuthForm'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [isRegistering, setIsRegistering] = useState(false)
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+    <main className="grid min-h-screen min-h-svh grid-cols-1 bg-[#f7f5f0] text-[#121413] min-[761px]:grid-cols-2">
+      <section
+        aria-label="Hamilton Little League"
+        className="relative flex min-h-[220px] flex-col items-center justify-end overflow-hidden border-b-2 border-[#121413] bg-[#0f4c3a] px-7 py-[34px] text-[#f7f5f0] min-[761px]:min-h-full min-[761px]:justify-center min-[761px]:border-b-0 min-[761px]:border-r-2 min-[761px]:px-[clamp(40px,8vw,120px)] min-[761px]:py-[72px]"
+      >
+        <div className="relative z-10 w-full min-[761px]:max-w-[560px] max-w-[440px]">
+          <p className="mb-[10px] text-[13px] font-bold leading-[1.4] tracking-[0.13em] text-[#ffc39e] uppercase min-[761px]:mb-4">
+            Play your way
           </p>
+          <h1 className="m-0 font-['Fraunces',Georgia,serif] text-[clamp(40px,11vw,58px)] leading-[1.04] font-semibold tracking-[-0.045em] text-white [text-shadow:4px_4px_0_#121413] min-[761px]:text-[clamp(48px,5vw,76px)]">
+            Hamilton<span className="min-[761px]:hidden"> </span><br className="hidden min-[761px]:block" />Little League
+          </h1>
+          <p className="mt-3 max-w-[390px] text-base leading-[1.55] font-bold text-[#f7f5f0] min-[761px]:mt-7 min-[761px]:text-[clamp(18px,1.7vw,22px)]">
+            Accessible and casual sports for Hamiltonians.
+          </p>
+          <div aria-hidden="true" className="mt-[52px] hidden gap-[10px] min-[761px]:flex">
+            <span className="h-2 w-[46px] border border-[#f7f5f0] bg-[#d95204]" />
+            <span className="h-2 w-[74px] border border-[#f7f5f0] bg-[#f7f5f0]" />
+            <span className="h-2 w-[46px] border border-[#f7f5f0] bg-transparent" />
+          </div>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+        <p className="absolute bottom-7 left-10 m-0 hidden text-[13px] text-[#f7f5f0]/[0.72] min-[761px]:block">
+          A little more play. A lot more community.
+        </p>
       </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
+      <section className="flex min-h-0 flex-col items-center justify-center px-7 pt-12 pb-6 min-[761px]:min-h-full min-[761px]:px-[clamp(28px,7vw,96px)] min-[761px]:pt-[72px] min-[761px]:pb-[30px]">
+        <AuthForm isRegistering={isRegistering} onModeChange={setIsRegistering} />
+        <p className="mt-[42px] text-center text-xs text-[#636c67] min-[761px]:mt-8">
+          Hamilton Little League · Made for everyone
+        </p>
       </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </main>
   )
 }
 

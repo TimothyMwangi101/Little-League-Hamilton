@@ -7,6 +7,9 @@
     "types": ["vite/client"],
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
+    "paths": {
+      "@backend/*": ["../LLH_Server/src/*"],
+    },
 
     /* Bundler mode */
     "moduleResolution": "bundler",
