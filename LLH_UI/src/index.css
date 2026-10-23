@@ -3,30 +3,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-auth-green: #0F4C3A;
+  --color-off-white: #f7f5f0;
+  --font-heading: 'Fraunces', sans-serif;
+  --font-body: 'Atkinson Hyperlegible', Arial, sans-serif;
+  --shadow-hard: 4px 4px 0px #121413;
+  --shadow-hard-hover: 2px 2px 0px #121413;
+  --drop-shadow-hard: 4px 4px 0 #121413;
+  --color-primary: #169c74;
+  --color-background-light: #f6f8f7;
+  --color-background-dark: #11211c;
+  --color-text-main: #121413;
+  --color-accent: #D95204;
+  --color-surface: #ffffff;
+  --color-muted: #636c67;
+}
+
 :root {
-  font-family: 'Atkinson Hyperlegible', Arial, sans-serif;
-  background: #f7f5f0;
+  font-family: var(--font-body);
+  background: var(--color-off-white);
 }
-
-* {
-  box-sizing: border-box;
-}
-/* 
-html,
-body,
-#root {
-  width: 100%;
-  min-width: 320px;
-  min-height: 100%;
-  margin: 0;
-}
-
-body {
-  min-height: 100vh;
-  min-height: 100svh;
-}
-
-button,
-input {
-  font: inherit;
-} */

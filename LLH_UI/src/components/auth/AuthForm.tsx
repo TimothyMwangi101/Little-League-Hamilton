@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import type { z } from 'zod'
-import type { ApiResponse, createUserSchema } from '@backend/db/schemas'
+import type { ApiResponse, createUserSchema, resetPasswordSchema } from '@backend/db/schemas'
 
-type AuthFormValues = z.infer<typeof createUserSchema>
+type CreateUser = z.infer<typeof createUserSchema>
+type ResetPassword = z.infer<typeof resetPasswordSchema>
 
 type AuthFormProps = {
   isRegistering: boolean
@@ -11,19 +12,15 @@ type AuthFormProps = {
 }
 
 function AuthForm({ isRegistering, onModeChange }: AuthFormProps) {
+  const inputClasses = "border-2 border-text-main bg-surface p-3 text-[18px] font-normal leading-normal text-text-main shadow-hard transition-all placeholder:text-muted focus:border-accent focus:outline-none focus:ring-0 aria-invalid:border-accent my-3"
   const [message, setMessage] = useState('')
-  const {
-    clearErrors,
-    formState: { errors, isSubmitting },
-    handleSubmit,
-    register,
-    reset,
-    setError,
-  } = useForm<AuthFormValues>({
+  const { clearErrors, formState: { errors, isSubmitting },
+    handleSubmit, register, reset, setError,
+  } = useForm<CreateUser>({
     defaultValues: { email: '', password: '' },
   })
 
-  async function submit(values: AuthFormValues) {
+  async function submit(values: CreateUser) {
     setMessage('')
     clearErrors()
 
@@ -70,124 +67,90 @@ function AuthForm({ isRegistering, onModeChange }: AuthFormProps) {
   }
 
   return (
-    <div className="my-auto w-full max-w-[440px]">
-      <div className="mb-[30px] min-[761px]:mb-[38px]">
-        <p className="mb-4 text-[13px] leading-[1.4] font-bold tracking-[0.13em] text-[#d95204] uppercase">
+    <div className="flex w-full max-w-110 flex-col my-auto">
+      <div className="mb-8">
+        <p className="text-[14px] font-bold uppercase text-accent">
           {isRegistering ? 'Join the team' : 'Welcome back'}
         </p>
-        <h2 className="m-0 font-['Fraunces',Georgia,serif] text-[clamp(34px,3.5vw,46px)] leading-[1.12] font-semibold tracking-[-0.035em] text-[#121413]">
+        <h2 className="mt-2 font-heading text-[36px] font-semibold leading-tight text-text-main">
           {isRegistering ? 'Create your account' : 'Log in'}
         </h2>
-        <p className="mt-[14px] text-base leading-[1.55] text-[#636c67]">
+        <p className="mt-3 text-[18px] text-muted">
           {isRegistering
             ? 'Get started with Hamilton Little League.'
             : 'Sign in to get back in the game.'}
         </p>
       </div>
 
-      <form
-        className="flex flex-col gap-[26px]"
-        noValidate
-        onSubmit={handleSubmit(submit)}
-      >
-        <div className="flex flex-col gap-[9px]">
-          <label htmlFor="email" className="text-base font-bold text-[#121413]">
+      <form noValidate onSubmit={handleSubmit(submit)}>
+        <div className="flex flex-col gap-2">
+          <label htmlFor="email" className="text-[18px] font-bold leading-normal text-text-main">
             Email address
           </label>
-          <input
-            autoComplete="email"
-            id="email"
-            placeholder="you@example.com"
-            type="email"
+          <input autoComplete="email"
+            id="email" placeholder="you@example.com" type="email"
             {...register('email', { required: 'Email address is required.' })}
             aria-invalid={Boolean(errors.email)}
             aria-describedby={errors.email ? 'email-error' : undefined}
-            className="min-h-[58px] w-full border-2 border-[#121413] bg-white p-[14px_15px] text-base text-[#121413] shadow-[4px_4px_0_#121413] transition-[border-color,box-shadow] duration-150 placeholder:text-[#737a76] focus-visible:border-[#d95204] focus-visible:outline-none focus-visible:shadow-[4px_4px_0_#d95204]"
-          />
+            className={inputClasses} />
           {errors.email && (
-            <p
-              id="email-error"
-              className="-mt-2 text-sm leading-[1.45] text-[#a12818]"
-              role="alert"
-            >
+            <p id="email-error" role="alert" className="text-[14px] font-bold text-accent">
               {errors.email.message}
             </p>
           )}
         </div>
-
-        <div className="flex flex-col gap-[9px]">
-          <div className="flex items-center justify-between gap-3">
-            <label htmlFor="password" className="text-base font-bold text-[#121413]">
+        <div className="flex flex-col">
+          <div className="flex items-center justify-between">
+            <label htmlFor="password" className="text-[18px] font-bold leading-normal text-text-main">
               Password
             </label>
             {!isRegistering && (
-              <button
-                className="w-fit cursor-pointer border-0 bg-transparent p-0 text-[13px] font-bold text-[#0f4c3a] underline decoration-1 underline-offset-[3px] hover:text-[#d95204] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#d95204]"
+              <button type="button"
                 onClick={() => {
-                  setMessage('Please contact league support to reset your password.')
+                  setMessage('To be implemented.')
                   clearErrors()
                 }}
-                type="button"
-              >
+                className="text-[14px] font-bold text-primary underline decoration-1 underline-offset-2 transition-colors hover:text-accent">
                 Forgot password?
               </button>
             )}
           </div>
-          <input
-            autoComplete={isRegistering ? 'new-password' : 'current-password'}
-            id="password"
-            placeholder="Enter your password"
-            type="password"
+          <input autoComplete={isRegistering ? 'new-password' : 'current-password'}
+            id="password" placeholder="Enter your password" type="password"
             {...register('password', { required: 'Password is required.' })}
             aria-invalid={Boolean(errors.password)}
             aria-describedby={errors.password ? 'password-error' : undefined}
-            className="min-h-[58px] w-full border-2 border-[#121413] bg-white p-[14px_15px] text-base text-[#121413] shadow-[4px_4px_0_#121413] transition-[border-color,box-shadow] duration-150 placeholder:text-[#737a76] focus-visible:border-[#d95204] focus-visible:outline-none focus-visible:shadow-[4px_4px_0_#d95204]"
-          />
+            className={inputClasses} />
           {errors.password && (
-            <p
-              id="password-error"
-              className="-mt-2 text-sm leading-[1.45] text-[#a12818]"
-              role="alert"
-            >
+            <p id="password-error" role="alert" className="text-[14px] font-bold text-accent">
               {errors.password.message}
             </p>
           )}
         </div>
 
         {errors.root?.serverError && (
-          <p
-            className="-mt-2 text-sm leading-[1.45] text-[#a12818]"
-            role="alert"
-          >
+          <p role="alert" className="text-[14px] font-bold text-accent">
             {errors.root.serverError.message}
           </p>
         )}
         {message && (
-          <p className="-mt-2 text-sm leading-[1.45] text-[#0f4c3a]" role="status">
+          <p role="status" className="text-[14px] font-bold text-auth-green">
             {message}
           </p>
         )}
 
-        <button
-          className="mt-[6px] min-h-[62px] cursor-pointer border-2 border-[#121413] bg-[#0f4c3a] px-5 py-[14px] text-[17px] font-bold tracking-[0.07em] text-white uppercase shadow-[4px_4px_0_#121413] transition-[transform,box-shadow,background] duration-120 hover:translate-x-0.5 hover:translate-y-0.5 hover:bg-[#0b3e30] hover:shadow-[2px_2px_0_#121413] active:translate-x-1 active:translate-y-1 active:shadow-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#d95204] disabled:cursor-wait disabled:opacity-70"
+        <button className="flex h-16 w-full cursor-pointer items-center justify-center border-2 border-text-main bg-auth-green px-5 text-[20px] font-bold uppercase text-surface shadow-hard transition-all hover:translate-y-0.5 hover:shadow-hard-hover active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-6 my-6"
           disabled={isSubmitting}
-          type="submit"
-        >
-          {isSubmitting
-            ? 'Please wait…'
-            : isRegistering
-              ? 'Create account'
-              : 'Log in'}
+          type="submit">
+          {isSubmitting ? 'Please wait…' : (isRegistering ? 'Create account' : 'Log in')}
         </button>
       </form>
 
-      <p className="mt-[30px] text-center text-[15px] leading-[1.6] text-[#121413]">
-        {isRegistering ? 'Already have an account?' : "Don't have an account?"}{' '}
-        <button
-          className="w-fit cursor-pointer border-0 bg-transparent p-0 text-[15px] font-bold text-[#0f4c3a] underline decoration-2 underline-offset-4 hover:text-[#d95204] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#d95204]"
+      <p className="text-[18px] text-text-main">
+        {isRegistering ? 'Already have an account?' : "Don't have an account?"}
+        <button className="ml-1 font-bold text-primary underline decoration-2 underline-offset-4 transition-colors hover:text-accent"
           onClick={() => changeMode(!isRegistering)}
-          type="button"
-        >
+          type="button">
           {isRegistering ? 'Log in' : 'Sign up here'}
         </button>
       </p>
