@@ -1,6 +1,5 @@
 import { sql } from "drizzle-orm";
 import { integer, text, sqliteTable, } from "drizzle-orm/sqlite-core";
-import { createInsertSchema, createSelectSchema, createUpdateSchema } from 'drizzle-orm/zod';
 import z from "zod";
 
 export const UsersTable = sqliteTable("users", {
@@ -8,7 +7,6 @@ export const UsersTable = sqliteTable("users", {
   email: text().notNull().unique(),
   password: text().notNull(),
   salt: text().notNull(),
-  createdAt: text().default(sql`(CURRENT_DATE)`),
 });
 
 export const createUserValidator = z.object({
@@ -26,5 +24,6 @@ export const resetPasswordValidator = z.object({
     newPassword: z.string()
 });
 
-export type User = Omit<typeof UsersTable.$inferSelect, "salt">;
-export type NewUser = Omit<typeof UsersTable.$inferInsert, "id" | "createdAt" | "salt">
+export type User = typeof UsersTable.$inferSelect;
+export type NewUser = Omit<typeof UsersTable.$inferInsert, "id" | "salt">
+export type SafeUser = Omit<typeof UsersTable.$inferSelect, "salt" | "password">;

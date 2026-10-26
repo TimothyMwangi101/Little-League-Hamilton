@@ -3,6 +3,7 @@ import { expand } from 'dotenv-expand';
 import { serve } from '@hono/node-server';
 import userRoutes from './routes/users.ts'
 import authRoutes from './routes/auth.ts'
+import accountRoutes from './routes/accounts.ts'
 import { db } from "./db/db.ts"
 import { UsersTable } from "./db/schemas.ts";
 import type { ApiFail, ApiSuccess } from "./db/schemas.ts";
@@ -20,8 +21,9 @@ const SERVER_URL = process.env.SERVER_URL;
 if (!SERVER_URL)
   throw new Error("server url not in env")
 
-app.route('user', userRoutes);
-app.route('auth', authRoutes);
+app.route('/user', userRoutes);
+app.route('/auth', authRoutes);
+app.route('/account', accountRoutes);
 
 app.onError((error, ctx) => {
   console.error(error);

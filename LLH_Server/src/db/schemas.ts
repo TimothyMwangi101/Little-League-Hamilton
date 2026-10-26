@@ -13,5 +13,4 @@ export type ApiResponse<T = unknown> = ApiSuccess<T> | ApiFail;
 export type UserPayload = {
     exp: number,
     id: number,
-    email: string
 };
