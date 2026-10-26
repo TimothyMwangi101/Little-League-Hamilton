@@ -9,14 +9,16 @@ export const sports = ["Basketball", "Baseball", "Football", "Soccer", "Bocce", 
 export const AccountsTable = sqliteTable("accounts", {
   userId: integer({ mode: "number" }).notNull()
     .references(() => UsersTable.id, { onDelete: "cascade" }),
+  firstName: text().default(sql`NULL`),
+  lastName: text().default(sql`NULL`),
   region: text({ enum: regions }).default(sql`NULL`),
-  prefers: text().default(sql`NULL`),
-  goals: integer({ mode: "number" }).default(0),
-  assists: integer({ mode: "number" }).default(0),
-  wins: integer({ mode: "number" }).default(0),
-  losses: integer({ mode: "number" }).default(0),
-  teams: text().default(sql`NULL`),
-  createdAt: text().default(sql`(CURRENT_DATE)`),
+  prefers: text("prefers", { mode: "json" }).$type<string[]>().default(sql`(json_array())`).notNull(),
+  goals: integer({ mode: "number" }).default(0).notNull(),
+  assists: integer({ mode: "number" }).default(0).notNull(),
+  wins: integer({ mode: "number" }).default(0).notNull(),
+  losses: integer({ mode: "number" }).default(0).notNull(),
+  teams: text("teams", { mode: "json" }).$type<string[]>().default(sql`(json_array())`).notNull(),
+  createdAt: text().default(sql`(CURRENT_DATE)`).notNull(),
 });
 
 

@@ -6,8 +6,8 @@ import "dotenv/config"
 import { createMiddleware } from 'hono/factory';
 import { jwt } from 'hono/jwt';
 
-const JWT_EXP_TIME = 60 * 5;
-const REFRESH_WHEN_LEFT  = JWT_EXP_TIME / 0.25;      // 25% time left
+const JWT_EXP_TIME = 60 * 10;
+const REFRESH_WHEN_LEFT  = JWT_EXP_TIME / 0.50;      // 50% time left
 const AUTH_SECRET = process.env.AUTH_SECRET;
 
 if (!AUTH_SECRET)
@@ -28,9 +28,9 @@ export async function issueJWT(ctx: Context, userId: number) {
     setCookie(ctx, "token", token, {
         httpOnly: true,
         sameSite: "Lax",
-        maxAge: JWT_EXP_TIME,      // 5 mins
+        maxAge: JWT_EXP_TIME,      // 10 mins
         path: "/",
-        secure: false
+        secure: true
     });
 }
 

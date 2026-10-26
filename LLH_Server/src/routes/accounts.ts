@@ -1,6 +1,6 @@
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from 'hono'
-import { AccountsTable, createAccountValidator } from "../db/schemas.ts"
+import { AccountsTable, createAccountValidator, UsersTable } from "../db/schemas.ts"
 import type { Account, ApiFail, ApiSuccess, SafeAccount, UserPayload } from "../db/schemas.ts";
 import { db } from "../db/db.ts"
 import { eq } from "drizzle-orm";
@@ -38,7 +38,11 @@ export async function createAccount(id: number) {
 
 app.get('/', async (ctx) => {
     const { id } = ctx.get('jwtPayload');
-    const account = await getAccount(id);
+    const [account] = await db
+        .select({ ...AccountsTable, email: UsersTable.email })
+        .from(AccountsTable)
+        .innerJoin(UsersTable, eq(UsersTable.id, AccountsTable.userId))
+        .where(eq(AccountsTable.userId, id));
 
     if (!account)
         return ctx.json({ error: "Error getting account" } satisfies ApiFail, StatusCodes.INTERNAL_SERVER_ERROR);
