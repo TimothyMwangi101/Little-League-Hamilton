@@ -4,7 +4,7 @@ const links = [
   { label: 'Dashboard', to: '/', icon: 'dashboard' },
   { label: 'Map', to: '/map', icon: 'location_on' },
   { label: 'Search', to: '/search', icon: 'search' },
-  { label: 'Login', to: '/auth', icon: 'person' },
+  { label: 'Login', to: '/login', icon: 'person' },
 ] as const
 
 function Nav() {

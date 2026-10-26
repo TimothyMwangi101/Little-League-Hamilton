@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import type { z } from 'zod'
-import type { ApiResponse, createUserSchema, resetPasswordSchema } from '@backend/db/schemas'
+import z from 'zod'
+import type { ApiResponse, User, resetPasswordValidator, NewUser, ApiFail } from '@backend/db/schemas'
+import authFetch, { type Endpoint } from './AuthApi';
+import { useNavigate } from 'react-router';
 
-type CreateUser = z.infer<typeof createUserSchema>
-type ResetPassword = z.infer<typeof resetPasswordSchema>
+type ResetPassword = z.infer<typeof resetPasswordValidator>
 
 type AuthFormProps = {
   isRegistering: boolean
@@ -14,46 +15,37 @@ type AuthFormProps = {
 function AuthForm({ isRegistering, onModeChange }: AuthFormProps) {
   const inputClasses = "border-2 border-text-main bg-surface p-3 text-[18px] font-normal leading-normal text-text-main shadow-hard transition-all placeholder:text-muted focus:border-accent focus:outline-none focus:ring-0 aria-invalid:border-accent my-3"
   const [message, setMessage] = useState('')
-  const { clearErrors, formState: { errors, isSubmitting },
-    handleSubmit, register, reset, setError,
-  } = useForm<CreateUser>({
+  const { clearErrors, formState: { errors, isSubmitting }, handleSubmit, 
+    register, reset, setError } = useForm<NewUser>({
     defaultValues: { email: '', password: '' },
   })
 
-  async function submit(values: CreateUser) {
+  async function submit(values: NewUser | User) {
     setMessage('')
     clearErrors()
+    const endpoint: Endpoint = isRegistering ? 'register' : 'login';
 
     try {
-      const response = await fetch(`/api/auth/${isRegistering ? 'register' : 'login'}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      })
-      const result: unknown = await response.json()
-      const responseError =
-        typeof result === 'object' &&
-          result !== null &&
-          'error' in result &&
-          typeof result.error === 'string'
-          ? result.error
-          : ''
+      const result = await authFetch<typeof values>(endpoint, values)
 
-      if (!response.ok) {
-        setError('root.serverError', {
-          message: responseError || 'We could not complete your request. Please try again.',
-        })
-        return
+      if ("error" in result) {
+        setError("root.serverError", { message: result.error })
+        return;
       }
 
       if (isRegistering) {
         reset({ email: values.email, password: '' })
+        // const login = await authFetch<User>("login", values);
+
         onModeChange(false)
         setMessage('Your account is ready. Log in with your new details.')
       } else {
-        setMessage('You are logged in successfully.')
+        setMessage("Logged in");
+        // const navigate = useNavigate();
+        // navigate("/account", { replace: true })
       }
-    } catch {
+    } catch(err) {
+      console.error(err);
       setError('root.serverError', {
         message: 'Unable to reach the server. Please try again in a moment.',
       })

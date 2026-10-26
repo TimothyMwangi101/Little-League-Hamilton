@@ -13,7 +13,7 @@ createRoot(document.getElementById('root')!).render(
         <Nav />
         <Routes>
           <Route path="/" element={<App />} />
-          <Route path="/auth" element={<Auth />} />
+          <Route path="/login" element={<Auth />} />
         </Routes>
       </div>
     </BrowserRouter>
