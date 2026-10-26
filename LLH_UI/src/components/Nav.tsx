@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router'
 
 const links = [
@@ -8,6 +9,44 @@ const links = [
 ] as const
 
 function Nav() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    let isCurrent = true
+
+    async function checkLogin() {
+      try {
+        const response = await fetch('/api/account')
+        if (isCurrent) {
+          setIsLoggedIn(response.ok)
+          if (!response.ok && response.status !== 401) {
+            console.error(`Unable to check login status: ${response.status}`)
+          }
+        }
+      } catch (err) {
+        console.error('Unable to check login status', err)
+      }
+    }
+
+    function handleLogin() {
+      setIsLoggedIn(true)
+    }
+
+    void checkLogin()
+    window.addEventListener('auth:login', handleLogin)
+
+    return () => {
+      isCurrent = false
+      window.removeEventListener('auth:login', handleLogin)
+    }
+  }, [])
+
+  const navLinks = links.map((link) =>
+    link.label === 'Login'
+      ? { ...link, label: isLoggedIn ? 'Account' : 'Login', to: isLoggedIn ? '/account' : '/login' }
+      : link
+  )
+
   return (
     <header className="bg-surface border-b-2">
       <div className="max-w-[1600px] mx-auto px-8 flex items-center justify-between h-20">
@@ -27,7 +66,7 @@ function Nav() {
         </Link>
 
         <nav aria-label="Main navigation" className="flex h-full">
-          {links.map(({ label, to, icon }) => (
+          {navLinks.map(({ label, to, icon }) => (
             <NavLink
               key={label}
               to={to}

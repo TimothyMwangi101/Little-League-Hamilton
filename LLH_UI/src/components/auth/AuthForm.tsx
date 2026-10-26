@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import type { resetPasswordValidator, AuthUser, ApiResponse, SafeAccount, Account } from '@backend/db/schemas'
+import { useNavigate } from 'react-router'
+import type { resetPasswordValidator, AuthUser, Account } from '@backend/db/schemas'
 import authFetch, { type Endpoint } from './AuthApi';
 import type z from 'zod';
 
@@ -14,6 +15,7 @@ type AuthFormProps = {
 
 function AuthForm({ isRegistering, onModeChange }: AuthFormProps) {
   const inputClasses = "border-2 border-text-main bg-surface p-3 text-[18px] font-normal leading-normal text-text-main shadow-hard transition-all placeholder:text-muted focus:border-accent focus:outline-none focus:ring-0 aria-invalid:border-accent my-3"
+  const navigate = useNavigate()
   const [message, setMessage] = useState('');
   const [isForgotPassword, setForgotPassword] = useState(false);
   const { clearErrors, formState: { errors, isSubmitting }, handleSubmit,
@@ -56,9 +58,8 @@ function AuthForm({ isRegistering, onModeChange }: AuthFormProps) {
           if (result.data === null) {
             throw new Error("Failed to get account");
           }
-          setMessage("Logged in");
-          const account = result.data;
-          console.log(`Account user ${account.userId}`);
+          window.dispatchEvent(new Event('auth:login'));
+          navigate('/account');
           break;
         }
       }

@@ -1,7 +1,11 @@
-import { type SafeAccount } from "@backend/db/schemas"
+import type { Account as AccountData } from '@backend/db/schemas'
 
+type AccountProfile = AccountData & { email: string }
 
-export default function Account({ ...account }: SafeAccount) {
+export default function Account({ ...account }: AccountProfile) {
+    const greetingName = [account.firstName, account.lastName]
+        .filter((name) => name?.trim())
+        .join(' ') || account.email
     const stats = [
         { label: "Goals", value: account.goals, icon: "sports_soccer" },
         { label: "Assists", value: account.assists, icon: "handshake" },
@@ -9,62 +13,54 @@ export default function Account({ ...account }: SafeAccount) {
         { label: "Losses", value: account.losses, icon: "sentiment_dissatisfied" },
     ]
 
+
     return (
         <main className="mx-auto w-full max-w-[1600px] p-4 sm:p-8">
-            <div className="mb-8 border-b-4 border-text-main pb-5">
-                <p className="mb-2 text-sm font-bold uppercase tracking-[0.16em] text-primary">
-                    Hamilton Little League
-                </p>
-                <h1 className="font-heading text-3xl font-bold uppercase tracking-tight text-text-main sm:text-4xl">
-                    My Account
-                </h1>
-                <p className="mt-2 text-lg text-muted">Your player profile and league activity</p>
-            </div>
-
-            <section aria-labelledby="profile-heading" className="mb-8 border-2 border-text-main bg-surface p-5 shadow-hard sm:p-7">
-                <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <section aria-labelledby="profile-heading" className="grid gap-6 lg:grid-cols-2 mb-6">
+                <div className="flex items-center">
                     <div className="flex items-center gap-4">
-                        <div aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center border-2 border-text-main bg-primary text-white shadow-hard">
-                            <span className="material-symbols-outlined text-3xl">person</span>
+                        <div aria-hidden="true" className="flex size-48 shrink-0 items-center justify-center border-2 border-text-main bg-primary text-white shadow-hard">
+                            <span className="material-symbols-outlined text-9xl">person</span>
                         </div>
-                        <div>
-                            <p className="mb-1 text-sm font-bold uppercase tracking-wider text-muted">
-                                Player profile
-                            </p>
-                            <h2 className="font-heading text-2xl font-bold uppercase tracking-tight text-text-main sm:text-3xl" id="profile-heading">
-                                League Member
+                        <div className='text-center'>
+                            <h2 className="font-heading text-2xl font-bold uppercase text-center text-primary sm:text-3xl" id="profile-heading">
+                                {greetingName}
                             </h2>
                         </div>
                     </div>
-                    <div className="border-t-2 border-text-main pt-4 sm:border-l-2 sm:border-t-0 sm:pl-6 sm:pt-0">
-                        <p className="text-sm font-bold uppercase tracking-wider text-muted">Member since</p>
-                        <p className="mt-1 text-lg font-bold text-text-main">
-                            {`${account.createdAt}`}
-                        </p>
-                    </div>
                 </div>
-
-                <div className="mt-6 grid gap-4 border-t-2 border-text-main pt-5 sm:grid-cols-2">
-                    <div className="flex items-start gap-3">
-                        <span aria-hidden="true" className="material-symbols-outlined text-2xl text-primary">
-                            location_on
-                        </span>
-                        <div>
-                            <p className="text-sm font-bold uppercase tracking-wider text-muted">Region</p>
-                            <p className="mt-1 font-bold text-text-main">
-                                {account.region ?? "No region selected"}
-                            </p>
+                <div className="border-2 border-text-main bg-surface p-5 shadow-hard sm:p-7">
+                    <div className="grid h-full content-center gap-5 border-text-main sm:grid-cols-2 xl:grid-cols-3">
+                        <div className="flex items-start gap-3">
+                            <span aria-hidden="true" className="material-symbols-outlined text-2xl text-primary">
+                                location_on
+                            </span>
+                            <div>
+                                <p className="text-sm font-bold uppercase tracking-wider text-muted">Region</p>
+                                <p className="mt-1 font-bold text-text-main">
+                                    {account.region ?? "No region selected"}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                        <span aria-hidden="true" className="material-symbols-outlined text-2xl text-primary">
-                            groups
-                        </span>
-                        <div>
-                            <p className="text-sm font-bold uppercase tracking-wider text-muted">Teams</p>
-                            <p className="mt-1 font-bold text-text-main">
-                                {account.teams.length} {account.teams.length === 1 ? "team" : "teams"}
-                            </p>
+                        <div className="flex items-start gap-3">
+                            <span aria-hidden="true" className="material-symbols-outlined text-2xl text-primary">
+                                groups
+                            </span>
+                            <div>
+                                <p className="text-sm font-bold uppercase tracking-wider text-muted">Teams</p>
+                                <p className="mt-1 font-bold text-text-main">
+                                    {account.teams.length} {account.teams.length === 1 ? "team" : "teams"}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <span aria-hidden="true" className="material-symbols-outlined text-2xl text-primary">
+                                calendar_month
+                            </span>
+                            <div>
+                                <p className="text-sm font-bold uppercase tracking-wider text-muted">Member since</p>
+                                <p className="mt-1 font-bold text-text-main">{account.createdAt}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -75,7 +71,6 @@ export default function Account({ ...account }: SafeAccount) {
                     <h2 className="font-heading text-2xl font-bold uppercase tracking-tight text-text-main sm:text-3xl" id="stats-heading">
                         League stats
                     </h2>
-                    <span className="text-sm font-bold uppercase tracking-wide text-muted">Career totals</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                     {stats.map(({ label, value, icon }) => (
@@ -98,7 +93,6 @@ export default function Account({ ...account }: SafeAccount) {
                         <h2 className="font-heading text-2xl font-bold uppercase tracking-tight text-text-main" id="sports-heading">
                             Sports I play
                         </h2>
-                        <p className="mt-1 text-muted">Your selected sports</p>
                     </div>
                     <div className="flex flex-wrap gap-3 p-5">
                         {account.prefers.length > 0 ? (
@@ -118,7 +112,6 @@ export default function Account({ ...account }: SafeAccount) {
                         <h2 className="font-heading text-2xl font-bold uppercase tracking-tight text-text-main" id="teams-heading">
                             My teams
                         </h2>
-                        <p className="mt-1 text-muted">Teams linked to your account</p>
                     </div>
                     {account.teams.length > 0 ? (
                         <ul className="divide-y-2 divide-text-main px-5">
