@@ -1,8 +1,7 @@
-import type { ApiResponse, NewUser, resetPasswordValidator } from "@backend/db/schemas";
+import type { ApiResponse, AuthUser, resetPasswordValidator } from "@backend/db/schemas";
 import type z from "zod";
-import { StatusCodes,  } from 'http-status-codes';
 
-export type Values = NewUser | z.infer<typeof resetPasswordValidator>
+export type Values = AuthUser | z.infer<typeof resetPasswordValidator>
 
 export type Endpoint = "register" | "login" | "reset-password";
 
@@ -14,15 +13,17 @@ export default async function authFetch<T = unknown>(endpoint: Endpoint, values:
       body: JSON.stringify(values),
     });
 
-    if (response.status == StatusCodes.UNAUTHORIZED) {
-      return { error : "Try registering first" }
+    const result: ApiResponse<T> = await response.json()
+
+    if ("error" in result) {
+      return result
     }
 
     if (!response.ok) {
-      return { error : "Network error." }
+      return { error: "Request failed. Please try again." }
     }
 
-    return await response.json();
+    return result
 
   } catch (err) {
     console.error(err)

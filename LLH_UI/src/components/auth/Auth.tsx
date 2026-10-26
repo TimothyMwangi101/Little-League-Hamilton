@@ -2,7 +2,7 @@ import { useState } from 'react'
 import AuthForm from './AuthForm'
 
 function Auth() {
-  const [isRegistering, setIsRegistering] = useState(false)
+  const [isRegistering, setIsRegistering] = useState(false);
 
   return (
     <>
