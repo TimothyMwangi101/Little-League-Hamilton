@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import AuthForm from './AuthForm'
 
-function Auth() {
+export default function AuthPage() {
   const [isRegistering, setIsRegistering] = useState(false);
 
   return (
@@ -26,4 +26,3 @@ function Auth() {
   )
 }
 
-export default Auth;

@@ -2,11 +2,11 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import './index.css'
-import Auth from './components/auth/Auth.tsx'
+import AuthPage from './components/auth/AuthPage.tsx'
 import App from './App.tsx'
 import Nav from './components/Nav.tsx'
 import AccountPage from './components/account/AccountPage.tsx'
-import Map from './components/map/Map.tsx'
+import MapPage from './components/map/MapPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -15,9 +15,9 @@ createRoot(document.getElementById('root')!).render(
         <Nav />
         <Routes>
           <Route path="/" element={<App />} />
-          <Route path="/login" element={<Auth />} />
+          <Route path="/login" element={<AuthPage />} />
           <Route path="/account" element={<AccountPage />} />
-          <Route path="/map" element={<Map />} />
+          <Route path="/map" element={<MapPage />} />
         </Routes>
       </div>
     </BrowserRouter>

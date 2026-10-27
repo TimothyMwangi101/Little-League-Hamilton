@@ -1,5 +1,6 @@
+import MapView from "./MapView";
 
-function Map() {
+export default function MapPage() {
     return (
         <main className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col overflow-y-auto bg-off-white md:flex-row md:overflow-hidden">
             <aside
@@ -48,8 +49,7 @@ function Map() {
                     </button>
                 </div>
             </aside>
+            <MapView />
         </main>
     )
 }
-
-export default Map
