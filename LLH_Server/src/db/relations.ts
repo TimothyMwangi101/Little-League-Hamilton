@@ -6,9 +6,21 @@ import { defineRelations } from "drizzle-orm";
 
 export const relations = defineRelations(schema, r => ({
     UsersTable: {
-        apiKeys: r.one.AccountsTable({
+        account: r.one.AccountsTable({
             from: r.UsersTable.id,
             to: r.AccountsTable.userId
         }),     // one to one
+    },
+    AccountsTable: {
+        teamDetails: r.one.TeamsTable({
+            from: r.AccountsTable.team,
+            to: r.TeamsTable.id
+        }),
+    },
+    TeamsTable: {
+        accounts: r.many.AccountsTable({
+            from: r.TeamsTable.id,
+            to: r.AccountsTable.team
+        }),
     }
 }));

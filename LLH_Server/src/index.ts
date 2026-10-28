@@ -4,6 +4,7 @@ import { serve } from '@hono/node-server';
 import userRoutes from './routes/users.ts'
 import authRoutes from './routes/auth.ts'
 import accountRoutes from './routes/accounts.ts'
+import teamRoutes from './routes/teams.ts'
 import { db } from "./db/db.ts"
 import { UsersTable } from "./db/schemas.ts";
 import type { ApiFail, ApiSuccess } from "./db/schemas.ts";
@@ -24,6 +25,7 @@ if (!SERVER_URL)
 app.route('/user', userRoutes);
 app.route('/auth', authRoutes);
 app.route('/account', accountRoutes);
+app.route('/team', teamRoutes);
 
 app.onError((error, ctx) => {
   console.error(error);
@@ -78,6 +80,8 @@ app.post('/seed', async (ctx) => {
 
   return ctx.json({ data: results } satisfies ApiSuccess<typeof results>, StatusCodes.CREATED);
 });
+
+app.post("/seed/team")
 
 serve({
   fetch: app.fetch,

@@ -13,7 +13,9 @@ const AUTH_SECRET = process.env.AUTH_SECRET;
 if (!AUTH_SECRET)
     throw new Error("auth secret not loaded from env");
 
-export type UserPayloadEnv = { Variables: { jwtPayload: UserPayload } }
+export type UserPayloadEnv = { 
+    Variables: { jwtPayload: UserPayload }
+}
 
 /** looks for the cookie named token */
 export const authenticate = jwt({ secret: AUTH_SECRET, alg: 'HS256', cookie: 'token' })
@@ -38,7 +40,7 @@ export const refreshJWT = createMiddleware<UserPayloadEnv>(async (ctx, next) => 
     const { exp, id } = ctx.get("jwtPayload")
     const secondsLeft = exp - Math.floor(Date.now() / 1000)
 
-    if (secondsLeft < REFRESH_WHEN_LEFT )  // When its 75% expired
+    if (secondsLeft < REFRESH_WHEN_LEFT)  // When its 75% expired
         await issueJWT(ctx, id)
 
     await next()
