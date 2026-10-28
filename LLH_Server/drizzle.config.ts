@@ -3,7 +3,9 @@ import "dotenv"
 import { config } from "dotenv";
 config();
 
+
 const DB_NAME = process.env.DB_NAME;
+// const DB_NAME = "llh_test.db";
 if(!DB_NAME)
   throw new Error("no db name in env")
 

@@ -2,7 +2,7 @@ import { sValidator } from "@hono/standard-validator";
 import { Hono } from 'hono'
 import { AccountsTable, createAccountValidator, joinTeamValidator, TeamsTable, UsersTable } from "../db/schemas.ts"
 import type { Account, ApiFail, ApiSuccess, SafeAccount, UserPayload } from "../db/schemas.ts";
-import { db } from "../db/db.ts"
+import { db } from "./db_test.ts"
 import { and, eq, isNull } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
 import { jwt } from 'hono/jwt';
