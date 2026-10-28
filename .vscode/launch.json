@@ -14,8 +14,9 @@
             ],
             "program": "${workspaceFolder}\\LLH_Server\\src\\db\\db.ts",
             "outFiles": [
-                "${workspaceFolder}/**/*.js"
-            ]
+                "${workspaceFolder}/**/*.js"    
+            ],
+            "runtimeExecutable": "..\\node-local\\node.exe"
         }
     ]
 }
