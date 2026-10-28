@@ -34,6 +34,28 @@
     },
     {
         "id": 4,
+        "key": "basketball_4",
+        "sport": "Basketball",
+        "recArea": "Lower Hamilton",
+        "ownership": "City",
+        "coordinates": {
+            "lat": 43.2635135006132,
+            "lng": -79.872213935481
+        }
+    },
+    {
+        "id": 5,
+        "key": "basketball_5",
+        "sport": "Basketball",
+        "recArea": "Hamilton Mountain",
+        "ownership": "City",
+        "coordinates": {
+            "lat": 43.1977065118937,
+            "lng": -79.8554749616566
+        }
+    },
+    {
+        "id": 6,
         "key": "baseball_1",
         "sport": "Baseball",
         "recArea": "Hamilton Mountain",
@@ -44,7 +66,7 @@
         }
     },
     {
-        "id": 5,
+        "id": 7,
         "key": "baseball_2",
         "sport": "Baseball",
         "recArea": "Lower Hamilton",
@@ -55,7 +77,7 @@
         }
     },
     {
-        "id": 6,
+        "id": 8,
         "key": "baseball_3",
         "sport": "Baseball",
         "recArea": "Hamilton Mountain",
@@ -66,7 +88,29 @@
         }
     },
     {
-        "id": 7,
+        "id": 9,
+        "key": "baseball_4",
+        "sport": "Baseball",
+        "recArea": "Lower Hamilton",
+        "ownership": "City",
+        "coordinates": {
+            "lat": 43.2469721129369,
+            "lng": -79.7915598767938
+        }
+    },
+    {
+        "id": 10,
+        "key": "baseball_5",
+        "sport": "Baseball",
+        "recArea": "Hamilton Mountain",
+        "ownership": "City",
+        "coordinates": {
+            "lat": 43.2397020241156,
+            "lng": -79.902093590401
+        }
+    },
+    {
+        "id": 11,
         "key": "football_1",
         "sport": "Football",
         "recArea": "Hamilton Mountain",
@@ -77,7 +121,7 @@
         }
     },
     {
-        "id": 8,
+        "id": 12,
         "key": "football_2",
         "sport": "Football",
         "recArea": "Lower Hamilton",
@@ -88,7 +132,7 @@
         }
     },
     {
-        "id": 9,
+        "id": 13,
         "key": "soccer_1",
         "sport": "Soccer",
         "recArea": "Hamilton Mountain",
@@ -99,7 +143,7 @@
         }
     },
     {
-        "id": 10,
+        "id": 14,
         "key": "soccer_2",
         "sport": "Soccer",
         "recArea": "Lower Hamilton",
@@ -110,7 +154,7 @@
         }
     },
     {
-        "id": 11,
+        "id": 15,
         "key": "soccer_3",
         "sport": "Soccer",
         "recArea": "Hamilton Mountain",
@@ -121,7 +165,29 @@
         }
     },
     {
-        "id": 12,
+        "id": 16,
+        "key": "soccer_4",
+        "sport": "Soccer",
+        "recArea": "Lower Hamilton",
+        "ownership": "City",
+        "coordinates": {
+            "lat": 43.273251711112,
+            "lng": -79.8545333735031
+        }
+    },
+    {
+        "id": 17,
+        "key": "soccer_5",
+        "sport": "Soccer",
+        "recArea": "Hamilton Mountain",
+        "ownership": "City",
+        "coordinates": {
+            "lat": 43.2086456640375,
+            "lng": -79.8204607178751
+        }
+    },
+    {
+        "id": 18,
         "key": "bocce_1",
         "sport": "Bocce",
         "recArea": "Hamilton Mountain",
@@ -132,7 +198,7 @@
         }
     },
     {
-        "id": 13,
+        "id": 19,
         "key": "bocce_2",
         "sport": "Bocce",
         "recArea": "Hamilton Mountain",
@@ -143,7 +209,7 @@
         }
     },
     {
-        "id": 14,
+        "id": 20,
         "key": "bocce_3",
         "sport": "Bocce",
         "recArea": "Hamilton Mountain",
@@ -154,7 +220,18 @@
         }
     },
     {
-        "id": 15,
+        "id": 21,
+        "key": "bocce_4",
+        "sport": "Bocce",
+        "recArea": "Hamilton Mountain",
+        "ownership": null,
+        "coordinates": {
+            "lat": 43.2389390186241,
+            "lng": -79.9207642967148
+        }
+    },
+    {
+        "id": 22,
         "key": "tennis_1",
         "sport": "Tennis",
         "recArea": "Hamilton Mountain",
@@ -165,7 +242,7 @@
         }
     },
     {
-        "id": 16,
+        "id": 23,
         "key": "tennis_2",
         "sport": "Tennis",
         "recArea": "Lower Hamilton",
@@ -176,7 +253,7 @@
         }
     },
     {
-        "id": 17,
+        "id": 24,
         "key": "tennis_3",
         "sport": "Tennis",
         "recArea": "Hamilton Mountain",
@@ -184,6 +261,28 @@
         "coordinates": {
             "lat": 43.2149082981914,
             "lng": -79.850328798104
+        }
+    },
+    {
+        "id": 25,
+        "key": "tennis_4",
+        "sport": "Tennis",
+        "recArea": "Lower Hamilton",
+        "ownership": "City",
+        "coordinates": {
+            "lat": 43.2391519056476,
+            "lng": -79.8302571985495
+        }
+    },
+    {
+        "id": 26,
+        "key": "tennis_5",
+        "sport": "Tennis",
+        "recArea": "Hamilton Mountain",
+        "ownership": "City",
+        "coordinates": {
+            "lat": 43.2201254194787,
+            "lng": -79.8295197657798
         }
     }
 ]
