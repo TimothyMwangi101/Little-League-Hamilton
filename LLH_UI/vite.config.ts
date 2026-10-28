@@ -3,7 +3,7 @@ import { defineConfig, loadEnv } from 'vite'
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
-  const { SERVER_URL, GOOGLE_MAPS_API_KEY } = loadEnv(mode, process.cwd(), "")
+  const { SERVER_URL, GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_MAP_ID } = loadEnv(mode, process.cwd(), "")
 
   return {
     plugins: [react(), tailwindcss()],
@@ -19,7 +19,8 @@ export default defineConfig(({ mode }) => {
     },
     // https://github.com/visgl/react-google-maps/blob/main/examples/basic-map/vite.config.js
     define: {
-      'GOOGLE_MAPS_API_KEY': JSON.stringify(GOOGLE_MAPS_API_KEY)
+      'GOOGLE_MAPS_API_KEY': JSON.stringify(GOOGLE_MAPS_API_KEY),
+      'GOOGLE_MAPS_MAP_ID': JSON.stringify(GOOGLE_MAPS_MAP_ID),
     },
   }
 })

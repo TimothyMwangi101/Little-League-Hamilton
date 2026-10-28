@@ -72,8 +72,8 @@ function Nav() {
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
-                `flex h-full min-w-10 items-center justify-center gap-2 border-b-4 px-2 text-[#121413] transition-colors hover:bg-gray-50 min-[761px]:px-6 ${isActive
-                  ? 'border-[#d95204] bg-[#d95204]/5 text-[#d95204]'
+                `flex h-full min-w-10 items-center justify-center gap-2 border-b-4 px-2 text-text-main transition-colors hover:bg-gray-50 min-[761px]:px-6 ${isActive
+                  ? 'border-accent bg-accent/5 text-accent'
                   : 'border-transparent'
                 }`
               }

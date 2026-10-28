@@ -1,155 +1,189 @@
 [
     {
+        "id": 1,
+        "key": "basketball_1",
         "sport": "Basketball",
         "recArea": "Hamilton Mountain",
         "ownership": "City",
-        "coordinates": [
-            -79.8500970787141,
-            43.2148734767352
-        ]
+        "coordinates": {
+            "lat": 43.2148734767352,
+            "lng": -79.8500970787141
+        }
     },
     {
+        "id": 2,
+        "key": "basketball_2",
         "sport": "Basketball",
         "recArea": "Lower Hamilton",
         "ownership": "City",
-        "coordinates": [
-            -79.8027105261125,
-            43.2372162864893
-        ]
+        "coordinates": {
+            "lat": 43.2372162864893,
+            "lng": -79.8027105261125
+        }
     },
     {
+        "id": 3,
+        "key": "basketball_3",
         "sport": "Basketball",
         "recArea": "Hamilton Mountain",
         "ownership": "City",
-        "coordinates": [
-            -79.8634991257583,
-            43.2099859839772
-        ]
+        "coordinates": {
+            "lat": 43.2099859839772,
+            "lng": -79.8634991257583
+        }
     },
     {
+        "id": 4,
+        "key": "baseball_1",
         "sport": "Baseball",
         "recArea": "Hamilton Mountain",
         "ownership": "City",
-        "coordinates": [
-            -79.9298547562625,
-            43.2377292836553
-        ]
+        "coordinates": {
+            "lat": 43.2377292836553,
+            "lng": -79.9298547562625
+        }
     },
     {
+        "id": 5,
+        "key": "baseball_2",
         "sport": "Baseball",
         "recArea": "Lower Hamilton",
         "ownership": "City",
-        "coordinates": [
-            -79.8907801554877,
-            43.2454879947314
-        ]
+        "coordinates": {
+            "lat": 43.2454879947314,
+            "lng": -79.8907801554877
+        }
     },
     {
+        "id": 6,
+        "key": "baseball_3",
         "sport": "Baseball",
         "recArea": "Hamilton Mountain",
         "ownership": "City",
-        "coordinates": [
-            -79.8906197505438,
-            43.2334451211571
-        ]
+        "coordinates": {
+            "lat": 43.2334451211571,
+            "lng": -79.8906197505438
+        }
     },
     {
+        "id": 7,
+        "key": "football_1",
         "sport": "Football",
         "recArea": "Hamilton Mountain",
         "ownership": "City",
-        "coordinates": [
-            -79.8623856649625,
-            43.2259846353576
-        ]
+        "coordinates": {
+            "lat": 43.2259846353576,
+            "lng": -79.8623856649625
+        }
     },
     {
+        "id": 8,
+        "key": "football_2",
         "sport": "Football",
         "recArea": "Lower Hamilton",
         "ownership": "City",
-        "coordinates": [
-            -79.8299007214641,
-            43.2524752609777
-        ]
+        "coordinates": {
+            "lat": 43.2524752609777,
+            "lng": -79.8299007214641
+        }
     },
     {
+        "id": 9,
+        "key": "soccer_1",
         "sport": "Soccer",
         "recArea": "Hamilton Mountain",
         "ownership": "City",
-        "coordinates": [
-            -79.8627768231108,
-            43.2119097612071
-        ]
+        "coordinates": {
+            "lat": 43.2119097612071,
+            "lng": -79.8627768231108
+        }
     },
     {
+        "id": 10,
+        "key": "soccer_2",
         "sport": "Soccer",
         "recArea": "Lower Hamilton",
         "ownership": "City",
-        "coordinates": [
-            -79.89166214958,
-            43.2457954195329
-        ]
+        "coordinates": {
+            "lat": 43.2457954195329,
+            "lng": -79.89166214958
+        }
     },
     {
+        "id": 11,
+        "key": "soccer_3",
         "sport": "Soccer",
         "recArea": "Hamilton Mountain",
         "ownership": "City",
-        "coordinates": [
-            -79.8651257634262,
-            43.1982124484193
-        ]
+        "coordinates": {
+            "lat": 43.1982124484193,
+            "lng": -79.8651257634262
+        }
     },
     {
+        "id": 12,
+        "key": "bocce_1",
         "sport": "Bocce",
         "recArea": "Hamilton Mountain",
         "ownership": null,
-        "coordinates": [
-            -79.9207012105211,
-            43.2389523724291
-        ]
+        "coordinates": {
+            "lat": 43.2389523724291,
+            "lng": -79.9207012105211
+        }
     },
     {
+        "id": 13,
+        "key": "bocce_2",
         "sport": "Bocce",
         "recArea": "Hamilton Mountain",
         "ownership": null,
-        "coordinates": [
-            -79.9208780829506,
-            43.2389146550189
-        ]
+        "coordinates": {
+            "lat": 43.2389146550189,
+            "lng": -79.9208780829506
+        }
     },
     {
+        "id": 14,
+        "key": "bocce_3",
         "sport": "Bocce",
         "recArea": "Hamilton Mountain",
         "ownership": null,
-        "coordinates": [
-            -79.9208217579995,
-            43.238926432036
-        ]
+        "coordinates": {
+            "lat": 43.238926432036,
+            "lng": -79.9208217579995
+        }
     },
     {
+        "id": 15,
+        "key": "tennis_1",
         "sport": "Tennis",
         "recArea": "Hamilton Mountain",
         "ownership": "City",
-        "coordinates": [
-            -79.8296878627118,
-            43.2201648931024
-        ]
+        "coordinates": {
+            "lat": 43.2201648931024,
+            "lng": -79.8296878627118
+        }
     },
     {
+        "id": 16,
+        "key": "tennis_2",
         "sport": "Tennis",
         "recArea": "Lower Hamilton",
         "ownership": "City",
-        "coordinates": [
-            -79.8833186661892,
-            43.2633299670616
-        ]
+        "coordinates": {
+            "lat": 43.2633299670616,
+            "lng": -79.8833186661892
+        }
     },
     {
+        "id": 17,
+        "key": "tennis_3",
         "sport": "Tennis",
         "recArea": "Hamilton Mountain",
         "ownership": "City",
-        "coordinates": [
-            -79.850328798104,
-            43.2149082981914
-        ]
+        "coordinates": {
+            "lat": 43.2149082981914,
+            "lng": -79.850328798104
+        }
     }
 ]
