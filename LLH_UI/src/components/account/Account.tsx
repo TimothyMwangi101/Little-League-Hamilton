@@ -1,11 +1,11 @@
 import type { Account as AccountData } from '@backend/db/schemas'
 
-type AccountProfile = AccountData & { email: string }
+type AccountProfile = AccountData
 
 export default function Account({ ...account }: AccountProfile) {
     const greetingName = [account.firstName, account.lastName]
         .filter((name) => name?.trim())
-        .join(' ') || account.email
+        .join(' ') || "Hey there"
     const stats = [
         { label: "Goals", value: account.goals, icon: "sports_soccer" },
         { label: "Assists", value: account.assists, icon: "handshake" },
@@ -49,7 +49,9 @@ export default function Account({ ...account }: AccountProfile) {
                             <div>
                                 <p className="text-sm font-bold uppercase tracking-wider text-muted">Teams</p>
                                 <p className="mt-1 font-bold text-text-main">
-                                    {account.teams.length} {account.teams.length === 1 ? "team" : "teams"}
+                                    No team
+                                    {/* FIXME: ?? */}
+                                    {/* {account.teams.length} {account.teams.length === 1 ? "team" : "teams"} */}
                                 </p>
                             </div>
                         </div>
@@ -95,7 +97,7 @@ export default function Account({ ...account }: AccountProfile) {
                         </h2>
                     </div>
                     <div className="flex flex-wrap gap-3 p-5">
-                        {account.prefers.length > 0 ? (
+                        {account.prefers && account.prefers.length > 0 ? (
                             account.prefers.map((sport) => (
                                 <span className="border-2 border-text-main bg-primary px-4 py-2 font-bold uppercase tracking-wide text-white" key={sport}>
                                     {sport}
@@ -110,20 +112,11 @@ export default function Account({ ...account }: AccountProfile) {
                 <section aria-labelledby="teams-heading" className="border-2 border-text-main bg-surface shadow-hard">
                     <div className="border-b-2 border-text-main bg-background-light p-5">
                         <h2 className="font-heading text-2xl font-bold uppercase tracking-tight text-text-main" id="teams-heading">
-                            My teams
+                            My team
                         </h2>
                     </div>
-                    {account.teams.length > 0 ? (
-                        <ul className="divide-y-2 divide-text-main px-5">
-                            {account.teams.map((team) => (
-                                <li className="flex items-center gap-3 py-4" key={team}>
-                                    <span aria-hidden="true" className="material-symbols-outlined text-2xl text-primary">
-                                        groups
-                                    </span>
-                                    <span className="font-bold text-text-main">{team}</span>
-                                </li>
-                            ))}
-                        </ul>
+                    {account.team && account.team > 0 ? (
+                        <p>You are in a team</p>
                     ) : (
                         <p className="p-5 text-muted">You are not on a team yet.</p>
                     )}

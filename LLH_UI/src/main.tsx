@@ -7,6 +7,7 @@ import App from './App.tsx'
 import Nav from './components/Nav.tsx'
 import AccountPage from './components/account/AccountPage.tsx'
 import MapPage from './components/map/MapPage.tsx'
+import SearchPage from './components/search/SearchPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -18,6 +19,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/login" element={<AuthPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/map" element={<MapPage />} />
+          <Route path="/search" element={<SearchPage />} />
         </Routes>
       </div>
     </BrowserRouter>

@@ -47,7 +47,7 @@ export function ParkImage({ coordinates }: { coordinates: LatLng }) {
                     fields: ["displayName", "location", "photos"],
                     locationRestriction: {
                         center: coordinates,
-                        radius: 200,
+                        radius: 300,
                     },
                     includedPrimaryTypes: ["park"],
                     maxResultCount: 5,
@@ -228,17 +228,20 @@ export default function MapPage() {
                             </h2>
                             <p>
                                 You can play {selectedPark.sport.toLowerCase()}
-                            </p>
+                            </p>                            
+                            {selectedPark.ownership && (
+                                <p>Owned by the {selectedPark.ownership}</p>
+                            )}
                         </section>
 
-                        <button
+                        {/* <button
                             className="mt-auto flex w-full items-center justify-center gap-2 border-2 border-text-main bg-primary px-6 py-4 text-lg font-bold uppercase tracking-wider text-white shadow-hard transition-all hover:-translate-y-0.5 hover:shadow-hard active:translate-y-1 active:shadow-none"
                             type="button">
                             <span aria-hidden="true" className="material-symbols-outlined">
                                 directions
                             </span>
                             Get Directions
-                        </button>
+                        </button> */}
                     </div>
                 </aside>
 
