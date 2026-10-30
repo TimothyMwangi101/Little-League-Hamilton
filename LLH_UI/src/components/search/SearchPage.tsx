@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-
 const sports = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Bocce', 'Tennis'] as const
 const regions = ['Hamilton Mountain', 'Lower Hamilton'] as const
 

@@ -234,14 +234,14 @@ export default function MapPage() {
                             )}
                         </section>
 
-                        {/* <button
+                        <button
                             className="mt-auto flex w-full items-center justify-center gap-2 border-2 border-text-main bg-primary px-6 py-4 text-lg font-bold uppercase tracking-wider text-white shadow-hard transition-all hover:-translate-y-0.5 hover:shadow-hard active:translate-y-1 active:shadow-none"
                             type="button">
                             <span aria-hidden="true" className="material-symbols-outlined">
                                 directions
                             </span>
                             Get Directions
-                        </button> */}
+                        </button>
                     </div>
                 </aside>
 

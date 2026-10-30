@@ -1,7 +1,7 @@
-import { scrypt, randomBytes, timingSafeEqual, createHash } from "node:crypto"
+import { scrypt, randomBytes, timingSafeEqual } from "node:crypto"
 
 const keyLen = 64;
-const randomBytesSize = 20;
+const randomBytesSize = 64;
 
 type SecurePassword = {
     salt: string;
