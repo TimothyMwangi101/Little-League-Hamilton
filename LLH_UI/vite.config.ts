@@ -3,6 +3,7 @@ import { defineConfig, loadEnv } from 'vite'
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
+  console.log(mode);
   const { SERVER_URL, GOOGLE_MAPS_API_KEY, GOOGLE_MAPS_MAP_ID } = loadEnv(mode, process.cwd(), "")
 
   return {
@@ -21,6 +22,7 @@ export default defineConfig(({ mode }) => {
     define: {
       'GOOGLE_MAPS_API_KEY': JSON.stringify(GOOGLE_MAPS_API_KEY),
       'GOOGLE_MAPS_MAP_ID': JSON.stringify(GOOGLE_MAPS_MAP_ID),
+      'SERVER_URL': JSON.stringify(SERVER_URL),
     },
   }
 })

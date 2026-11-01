@@ -10,10 +10,10 @@ import { UsersTable } from "./db/schemas.ts";
 import type { ApiFail, ApiSuccess } from "./db/schemas.ts";
 import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
+import type { ApplyGlobalResponse } from 'hono/client'
 
 expand(dotenv.config());
 
-const app = new Hono();
 const SERVER_PORT = process.env.SERVER_PORT;
 if (!SERVER_PORT)
   throw new Error("port not in env")
@@ -21,24 +21,19 @@ if (!SERVER_PORT)
 const SERVER_URL = process.env.SERVER_URL;
 if (!SERVER_URL)
   throw new Error("server url not in env")
-
-app.route('/user', userRoutes);
-app.route('/auth', authRoutes);
-app.route('/account', accountRoutes);
-app.route('/team', teamRoutes);
-
-app.onError((error, ctx) => {
-  console.error(error);
-  return ctx.json({ error: "Internal server error" } satisfies ApiFail, StatusCodes.INTERNAL_SERVER_ERROR);
-});
-
-app.notFound((ctx) => {
-  return ctx.json({ error: "Not found" } satisfies ApiFail, StatusCodes.NOT_FOUND);
-});
-
-app.get('/', (ctx) => {
-  return ctx.json({ data: "Hello Hono!" } satisfies ApiSuccess<string>, StatusCodes.OK);
-});
+const app = new Hono()
+  .route('/user', userRoutes)
+  .route('/auth', authRoutes)
+  .route('/account', accountRoutes)
+  .route('/team', teamRoutes)
+  .onError((error, ctx) => {
+    console.error(error);
+    return ctx.json({ error: "Internal server error" }, StatusCodes.INTERNAL_SERVER_ERROR);
+  }).notFound((ctx) => {
+    return ctx.json({ error: "Not found" }, StatusCodes.NOT_FOUND);
+  }).get('/', (ctx) => {
+    return ctx.json({ data: "Hello Hono!" }, StatusCodes.OK);
+  });
 
 app.post('/seed', async (ctx) => {
   const emails = [
@@ -78,10 +73,9 @@ app.post('/seed', async (ctx) => {
   const responses = await Promise.all(requests);
   const results = await Promise.all(responses.map(res => res.json()))
 
-  return ctx.json({ data: results } satisfies ApiSuccess<typeof results>, StatusCodes.CREATED);
+  return ctx.json({ data: results }, StatusCodes.CREATED);
 });
 
-app.post("/seed/team")
 
 serve({
   fetch: app.fetch,
@@ -89,3 +83,11 @@ serve({
 }, () => {
   console.log(`Server is running on ${SERVER_URL}`)
 })
+
+export type AppType = ApplyGlobalResponse<
+  typeof app,
+  {
+    500: { json: { error: string } }
+  }
+>;
+export default app;

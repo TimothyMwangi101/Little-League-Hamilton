@@ -1,11 +1,8 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router'
-import type { resetPasswordValidator, AuthUser, Account } from '@backend/db/schemas'
-import authFetch, { type Endpoint } from './AuthApi';
-import type z from 'zod';
+import * as AuthApi from './AuthApi';
 
-type ResetPassword = z.infer<typeof resetPasswordValidator>
 type AuthFormValues = { email: string; password?: string; newPassword?: string }
 
 type AuthFormProps = {
@@ -13,7 +10,7 @@ type AuthFormProps = {
   onModeChange: (isRegistering: boolean) => void
 }
 
-function AuthForm({ isRegistering, onModeChange }: AuthFormProps) {
+export default function AuthForm({ isRegistering, onModeChange }: AuthFormProps) {
   const inputClasses = "border-2 border-text-main bg-surface p-3 text-[18px] font-normal leading-normal text-text-main shadow-hard transition-all placeholder:text-muted focus:border-accent focus:outline-none focus:ring-0 aria-invalid:border-accent my-3"
   const navigate = useNavigate()
   const [message, setMessage] = useState('');
@@ -27,47 +24,57 @@ function AuthForm({ isRegistering, onModeChange }: AuthFormProps) {
   async function submit(values: AuthFormValues) {
     setMessage('')
     clearErrors()
-    const endpoint: Endpoint = isForgotPassword ? 'reset-password' : (isRegistering ? 'register' : 'login')
-    const requestValues: AuthUser | ResetPassword = isForgotPassword
-      ? { email: values.email, newPassword: values.newPassword ?? '' }
-      : { email: values.email, password: values.password ?? '' }
+    const fail = (message: string) => setError('root.serverError', { message })
 
     try {
-      const result = await authFetch<Account | null>(endpoint, requestValues)
-      if ('error' in result) {
-        setError('root.serverError', { message: result.error })
+      if (isForgotPassword) {
+        const result = await AuthApi.resetPassword({
+          email: values.email,
+          newPassword: values.newPassword ?? '',
+        })
+        if ('error' in result) {
+          fail(result.error)
+          return
+        }
+
+        reset({ email: values.email })
+        setForgotPassword(false)
+        setMessage('Your password has been reset. Log in with your new password.')
         return
       }
-      switch (endpoint) {
-        case "reset-password": {
-          reset({ email: values.email });
-          setForgotPassword(false);
-          setMessage('Your password has been reset. Log in with your new password.');
-          break;
+
+      const credentials = { email: values.email, password: values.password ?? '' }
+
+      if (isRegistering) {
+        const result = await AuthApi.register(credentials)
+        if ('error' in result) {
+          fail(result.error)
+          return
         }
 
-        case "register": {
-          reset({ email: values.email, password: '' });
-          onModeChange(false);
-          setMessage('Your account has been created and is ready for log in!');
-          break;
-        }
-
-        case "login": 
-        default: {
-          if (result.data === null) {
-            throw new Error("Failed to get account");
-          }
-          window.dispatchEvent(new Event('auth:login'));
-          navigate('/account');
-          break;
-        }
+        reset({ email: values.email, password: '' })
+        onModeChange(false)
+        setMessage('Your account has been created and is ready for log in!')
+        return
       }
+
+      const result = await AuthApi.login(credentials)
+      if ('error' in result) {
+        fail(result.error)
+        return
+      }
+
+      if (result.data === null) {
+        fail('Could not load your account. Please try again.')
+        return;
+      }
+
+      window.dispatchEvent(new Event('auth:login'))
+      navigate('/account')
     } catch (err) {
-      console.error(err);
-      setError('root.serverError', {
-        message: 'Unable to reach the server. Please try again in a moment.',
-      })
+      console.error(err)
+      fail('Unable to reach the server. Please try again in a moment.')
+      return;
     }
   }
 
@@ -208,5 +215,3 @@ function AuthForm({ isRegistering, onModeChange }: AuthFormProps) {
     </div>
   )
 }
-
-export default AuthForm

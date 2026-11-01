@@ -10,6 +10,7 @@
     "paths": {
       "@backend/*": ["../LLH_Server/src/*"],
     },
+    "strict": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",

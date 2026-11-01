@@ -29,7 +29,7 @@ export async function issueJWT(ctx: Context, userId: number) {
 
     setCookie(ctx, "token", token, {
         httpOnly: true,
-        sameSite: "Lax",
+        sameSite: "Strict",
         maxAge: JWT_EXP_TIME,      // 10 mins
         path: "/",
         secure: true

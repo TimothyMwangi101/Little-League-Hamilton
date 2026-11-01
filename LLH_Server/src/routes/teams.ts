@@ -4,8 +4,10 @@ import { eq } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
 import { sValidator } from "@hono/standard-validator";
+import { authenticate, refreshJWT, type UserPayloadEnv } from "../middleware/auth.ts";
 
-const app = new Hono();
+const app = new Hono<UserPayloadEnv>()
+    .use("/team", authenticate, refreshJWT);
 
 app.get("/", async (ctx) => {
     const teams = await db.select().from(TeamsTable);

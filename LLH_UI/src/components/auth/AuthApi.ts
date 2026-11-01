@@ -1,32 +1,30 @@
-import type { ApiResponse, AuthUser, resetPasswordValidator } from "@backend/db/schemas";
-import type z from "zod";
+import type { InferRequestType, InferResponseType } from "hono/client";
+import client from "../../client";
+import type { StatusCodes } from "http-status-codes";
 
-export type Values = AuthUser | z.infer<typeof resetPasswordValidator>
+const auth = client.auth;
+export type RegisterValues = InferRequestType<typeof auth.register.$post>["json"];
+export type LoginValues = InferRequestType<typeof auth.login.$post>["json"];
+export type ResetPasswordValues = InferRequestType<typeof auth.reset_password.$post>["json"];
+export type Account = InferResponseType<typeof auth.login.$post, StatusCodes.OK>["data"];
+export type Endpoint = "login" | "register" | "reset_password";
 
-export type Endpoint = "register" | "login" | "reset-password";
+export async function register(values: RegisterValues) {
+  const res = await auth.register.$post({ json: values });
+  return res.json();
+}
 
-export default async function authFetch<T = unknown>(endpoint: Endpoint, values: Values): Promise<ApiResponse<T>> {
-  try {
-    const response = await fetch(`/api/auth/${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-    });
+export async function login(values: LoginValues) {
+  const res = await auth.login.$post({ json: values });
+  return res.json(); 
+}
 
-    const result: ApiResponse<T> = await response.json()
+export async function resetPassword(values: ResetPasswordValues) {
+  const res = await auth.reset_password.$post({ json: values });
+  return res.json();
+}
 
-    if ("error" in result) {
-      return result
-    }
-
-    if (!response.ok) {
-      return { error: "Request failed. Please try again." }
-    }
-
-    return result
-
-  } catch (err) {
-    console.error(err)
-    return { error: "Unable to reach server" }
-  }
+export async function logout() {
+  const res = await auth.logout.$post();
+  return res.json();
 }

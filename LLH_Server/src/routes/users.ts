@@ -4,51 +4,49 @@ import { eq } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
 
-const app = new Hono();
-
-app.get("/", async (ctx) => {
-  const users = await db.select().from(UsersTable);
-  return ctx.json({ data: users }, StatusCodes.OK);
-});
-
-app.get("/:id", async (ctx) => {
-  const id = Number.parseInt(ctx.req.param("id") ?? -1);
-
-  if (id < 0) {
-    return ctx.json({ error: "Invalid user id" }, StatusCodes.BAD_REQUEST);
-  }
-
-  const [user] = await db.select({
-    id: UsersTable.id,
-    email: UsersTable.email
+const app = new Hono()
+  .get("/", async (ctx) => {
+    const users = await db
+    .select({
+      id: UsersTable.id,
+      email: UsersTable.email
+    })
+    .from(UsersTable);
+    return ctx.json({ data: users }, StatusCodes.OK);
   })
-    .from(UsersTable)
-    .where(eq(UsersTable.id, id));
+  .get("/:id", async (ctx) => {
+    const id = Number.parseInt(ctx.req.param("id") ?? -1);
 
-  if (!user) {
-    return ctx.json({ error: "User not found" }, StatusCodes.NOT_FOUND);
-  }
+    if (id < 0) {
+      return ctx.json({ error: "Invalid user id" }, StatusCodes.BAD_REQUEST);
+    }
 
-  return ctx.json({ data: user }, StatusCodes.OK);
-});
+    const [user] = await db.select({
+      id: UsersTable.id,
+      email: UsersTable.email
+    })
+      .from(UsersTable)
+      .where(eq(UsersTable.id, id));
 
-app.delete("/:id", async (ctx) => {
-  const id = Number.parseInt(ctx.req.param("id") ?? -1);
+    if (!user) {
+      return ctx.json({ error: "User not found" }, StatusCodes.NOT_FOUND);
+    }
 
-  if (id < 0) {
-    return ctx.json({ error: "Invalid user id" }, StatusCodes.BAD_REQUEST);
-  }
+    return ctx.json({ data: user }, StatusCodes.OK);
+  })
+  .delete("/:id", async (ctx) => {
+    const id = Number.parseInt(ctx.req.param("id"));
 
-  await db.delete(UsersTable)
-    .where(eq(UsersTable.id, id));
+    if (Number.isNaN(id) || id < 0) {
+      return ctx.json({ error: "Invalid user id" },  StatusCodes.BAD_REQUEST);
+    }
+    await db.delete(UsersTable)
+      .where(eq(UsersTable.id, id));
 
-  return ctx.json({ data: "User deleted" }, StatusCodes.OK);
-});
-
-app.delete("/", async (ctx) => {
-  await db.delete(UsersTable);
-
-  return ctx.json({ data: "Deleted all users" }, StatusCodes.OK);
-});
+    return ctx.json({ data: "User deleted" }, StatusCodes.OK);
+  }).delete("/", async (ctx) => {
+    await db.delete(UsersTable);
+    return ctx.json({ data: "Deleted all users" }, StatusCodes.OK);
+  });
 
 export default app;
