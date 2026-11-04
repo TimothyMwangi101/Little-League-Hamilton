@@ -63,5 +63,3 @@ The API is mounted at `/api`, with route groups under `/api/user`, `/api/auth`, 
 | `tests/` | Vitest tests for authentication, database behavior, and users. |
 
 `src/index.ts` configures the port, applies database migrations, mounts the API and static UI handlers, and starts the Node.js server. `src/app.ts` assembles the API route groups.
-
-Keep `.env` values private; do not commit secrets.

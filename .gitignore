@@ -1,7 +1,6 @@
 /node-local
 .env
 /docs/LLH UI Mockups/
-Raw Park Data/Raw_Parks.*
 Raw Park Data/Parks.*
 node_modules/
 dist/
