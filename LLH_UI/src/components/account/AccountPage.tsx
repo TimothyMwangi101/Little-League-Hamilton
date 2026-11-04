@@ -1,30 +1,33 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import type { Account as AccountData, ApiResponse } from '@backend/db/schemas'
-import Account from './Account.tsx'
+import AccountView from './Account.tsx'
+import type { InferResponseType } from "hono/client";
+import { StatusCodes } from "http-status-codes";
+import client from "../../client";
 
-type AccountProfile = AccountData & { email: string }
+export type Account = InferResponseType<typeof client.account.$get, StatusCodes.OK>["data"];
 
 export default function AccountPage() {
   const navigate = useNavigate()
-  const [account, setAccount] = useState<AccountProfile | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [account, setAccount] = useState<Account>()
+  const [error, setError] = useState<string>("")
 
   useEffect(() => {
     let isCurrent = true
 
     async function loadAccount() {
       try {
-        const response = await fetch('/api/account', { credentials: 'same-origin' })
-        const result: ApiResponse<AccountProfile> = await response.json()
+        const response = await client.account.$get();
 
-        if (response.status === 401) {
+        if (response.status == StatusCodes.UNAUTHORIZED) {
           navigate('/login', { replace: true })
           return
         }
+        const result = await response.json();
 
-        if (!response.ok || 'error' in result) {
-          throw new Error('error' in result ? result.error : 'Unable to load your account.')
+        if ('error' in result) {
+          setError(String(result.error))
+          return
         }
 
         if (isCurrent) {
@@ -60,5 +63,5 @@ export default function AccountPage() {
     )
   }
 
-  return <Account {...account} />
+  return <AccountView account={account.AccountsTable} email={account.email} />
 }

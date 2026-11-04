@@ -88,6 +88,8 @@ const app = new Hono()
 
             await issueJWT(ctx, user.id);
 
+        
+
             const account = await getAccount(user.id);
 
             return ctx.json({ data: account }, StatusCodes.OK);

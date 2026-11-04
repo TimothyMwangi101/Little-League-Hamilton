@@ -7,74 +7,68 @@ import { sValidator } from "@hono/standard-validator";
 import { authenticate, refreshJWT, type UserPayloadEnv } from "../middleware/auth.ts";
 
 const app = new Hono<UserPayloadEnv>()
-    .use("/team", authenticate, refreshJWT);
+    .use(authenticate, refreshJWT)
+    .get("/", async (ctx) => {
+        const teams = await db.select().from(TeamsTable);
+        return ctx.json({ data: teams }, StatusCodes.OK);
+    })
+    .get("/:id", async (ctx) => {
+        const { id } = ctx.get('jwtPayload') ?? undefined;
 
-app.get("/", async (ctx) => {
-    const teams = await db.select().from(TeamsTable);
-    return ctx.json({ data: teams }, StatusCodes.OK);
-});
+        if (!id)
+            return ctx.json({ error: "Not authenticated" }, StatusCodes.UNAUTHORIZED);
 
-app.get("/:id", async (ctx) => {
-    const id = Number.parseInt(ctx.req.param("id") ?? -1);
+        const [team] = await db.select()
+            .from(TeamsTable)
+            .where(eq(TeamsTable.id, id));
 
-    if (id < 0) {
-        return ctx.json({ error: "Invalid user id" }, StatusCodes.BAD_REQUEST);
-    }
+        if (!team) {
+            return ctx.json({ error: "Teamt not found" }, StatusCodes.NOT_FOUND);
+        }
 
-    const [team] = await db.select()
-        .from(TeamsTable)
-        .where(eq(TeamsTable.id, id));
+        return ctx.json({ data: team }, StatusCodes.OK);
+    })
+    .post("/create", sValidator("json", createTeamValidator, (result, ctx) => {
+        if (!result.success) {
+            console.error(result.error)
+            return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
+        }
+    }), async (ctx) => {
+        const { name, captainId, invitePolicy } = ctx.req.valid("json");
 
-    if (!team) {
-        return ctx.json({ error: "Teamt not found" }, StatusCodes.NOT_FOUND);
-    }
+        const [exist] = await db
+            .select()
+            .from(TeamsTable)
+            .where(eq(TeamsTable.name, name));
 
-    return ctx.json({ data: team }, StatusCodes.OK);
-});
+        if (exist)
+            return ctx.json({ error: "Teamt exists" }, StatusCodes.CONFLICT);
 
+        const [team] = await db
+            .insert(TeamsTable)
+            .values({ name, captainId, invitePolicy })
+            .returning();
 
-app.post("/create", sValidator("json", createTeamValidator, (result, ctx) => {
-    if (!result.success) {
-        console.error(result.error)
-        return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
-    }
-}), async (ctx) => {
-    const { name, captainId, invitePolicy } = ctx.req.valid("json");
+        return ctx.json({ data: team }, StatusCodes.CREATED);
+    }).delete("/", async (ctx) => {
+        const { id } = ctx.get('jwtPayload') ?? undefined;
 
-    const [exist] = await db
-        .select()
-        .from(TeamsTable)
-        .where(eq(TeamsTable.name, name));
+        if (!id)
+            return ctx.json({ error: "Not authenticated" }, StatusCodes.UNAUTHORIZED);
 
-    if (exist)
-        return ctx.json({ error: "Teamt exists" }, StatusCodes.CONFLICT);
+        const [team] = await db
+            .select()
+            .from(TeamsTable)
+            .where(eq(TeamsTable.captainId, id))
 
-    const [team] = await db
-        .insert(TeamsTable)
-        .values({ name, captainId, invitePolicy })
-        .returning();
-            
-    return ctx.json({ data: team }, StatusCodes.CREATED);      
-})
+        if (!team)
+            return ctx.json({ error: "Only captain can delete teams" }, StatusCodes.UNAUTHORIZED);
 
+        await db
+            .delete(TeamsTable)
+            .where(eq(TeamsTable.id, team.id));
 
-app.delete("/:id", async (ctx) => {
-    const id = Number.parseInt(ctx.req.param("id") ?? -1);
-
-    if (id < 0) {
-        return ctx.json({ error: "Invalid user id" }, StatusCodes.BAD_REQUEST);
-    }
-
-    await db.delete(UsersTable)
-        .where(eq(UsersTable.id, id));
-
-    return ctx.json({ data: "User deleted" }, StatusCodes.OK);
-});
-
-app.delete("/", async (ctx) => {
-    await db.delete(UsersTable);
-
-    return ctx.json({ data: "Deleted all users" }, StatusCodes.OK);
-});
+        return ctx.json({ data: "Deleted team" }, StatusCodes.OK);
+    });
 
 export default app;

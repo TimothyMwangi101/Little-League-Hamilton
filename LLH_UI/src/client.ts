@@ -1,4 +1,4 @@
-import type { AppType } from '@backend/index';
+import type { AppType } from '@server/app';
 import { hc } from 'hono/client';
 
 

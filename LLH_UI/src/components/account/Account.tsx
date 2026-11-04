@@ -1,11 +1,14 @@
-import type { Account as AccountData } from '@backend/db/schemas'
+import type { Account } from "./AccountPage"
 
-type AccountProfile = AccountData
+type AccountViewProps = {
+    account: Account["AccountsTable"]
+    email: Account["email"]
+}
 
-export default function Account({ ...account }: AccountProfile) {
+export default function AccountView({ account, email }: AccountViewProps) {
     const greetingName = [account.firstName, account.lastName]
         .filter((name) => name?.trim())
-        .join(' ') || "Hey there"
+        .join(' ') || email
     const stats = [
         { label: "Goals", value: account.goals, icon: "sports_soccer" },
         { label: "Assists", value: account.assists, icon: "handshake" },

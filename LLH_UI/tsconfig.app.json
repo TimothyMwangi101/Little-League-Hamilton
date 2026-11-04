@@ -8,7 +8,7 @@
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
     "paths": {
-      "@backend/*": ["../LLH_Server/src/*"],
+      "@server/app": ["../LLH_Server/src/app.ts"],
     },
     "strict": true,
 

@@ -1,17 +1,21 @@
 import type { Context } from 'hono'
 import { deleteCookie, setCookie } from 'hono/cookie'
 import { sign } from 'hono/jwt'
-import { type UserPayload } from '../db/schemas.ts';
 import "dotenv/config"
 import { createMiddleware } from 'hono/factory';
 import { jwt } from 'hono/jwt';
 
 const JWT_EXP_TIME = 60 * 10;
-const REFRESH_WHEN_LEFT  = JWT_EXP_TIME / 0.50;      // 50% time left
+const REFRESH_WHEN_LEFT  = JWT_EXP_TIME * 0.50;      // 50% time left
 const AUTH_SECRET = process.env.AUTH_SECRET;
 
 if (!AUTH_SECRET)
     throw new Error("auth secret not loaded from env");
+
+export type UserPayload = {
+    exp: number,
+    id: number,
+};
 
 export type UserPayloadEnv = { 
     Variables: { jwtPayload: UserPayload }
@@ -22,7 +26,7 @@ export const authenticate = jwt({ secret: AUTH_SECRET, alg: 'HS256', cookie: 'to
 
 export async function issueJWT(ctx: Context, userId: number) {
     const payload: UserPayload = {
-        exp: Math.floor(Date.now() / 1000) + JWT_EXP_TIME,   // exp in 5 mins 
+        exp: Math.floor(Date.now() / 1000) + JWT_EXP_TIME,   // exp in 10 mins 
         id: userId,
     }
     const token = await sign(payload, AUTH_SECRET!, "HS256")
