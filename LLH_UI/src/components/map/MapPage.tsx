@@ -57,7 +57,7 @@ export function ParkImage({ coordinates }: { coordinates: LatLng }) {
 
                 // Pick the nearest returned park that has a photo.
                 const matchingPark = places.find(
-                    (place) => (place.photos?.length ?? 0) > 0
+                    (place: any) => (place.photos?.length ?? 0) > 0
                 );
 
                 const photo = matchingPark?.photos?.[0];
@@ -73,7 +73,7 @@ export function ParkImage({ coordinates }: { coordinates: LatLng }) {
                     );
 
                     setCredits(
-                        photo.authorAttributions.map((author) => ({
+                        photo.authorAttributions.map((author: any) => ({
                             name: author.displayName,
                             url: author.uri ?? undefined,
                         }))

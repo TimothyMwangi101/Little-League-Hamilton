@@ -1,4 +1,4 @@
-import { createTeamValidator, TeamsTable, UsersTable } from "../db/schemas.ts";
+import { createTeamValidator, TeamsTable } from "../db/schemas.ts";
 import { db } from "../db/db.ts";
 import { eq } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
