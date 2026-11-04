@@ -1,3 +1,4 @@
+import "dotenv/config"
 import { sValidator } from "@hono/standard-validator";
 import { hashPassword, comparePasswords } from "../lib/crypto.ts"
 import { Hono } from 'hono'
@@ -6,16 +7,13 @@ import { db } from "../db/db.ts"
 import { eq } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
 import { deleteJWT, issueJWT } from "../middleware/auth.ts";
-import * as dotenv from 'dotenv';
-import { expand } from 'dotenv-expand';
 import { createAccount, getAccount } from "./accounts.ts";
-expand(dotenv.config());
 
 const AUTH_SECRET = process.env.AUTH_SECRET;
-const SERVER_URL = process.env.SERVER_URL;
+// const SERVER_URL = process.env.SERVER_URL;
 
-if (!SERVER_URL)
-    throw new Error("server url not in env")
+// if (!SERVER_URL)
+//     throw new Error("server url not in env")
 
 if (!AUTH_SECRET)
     throw new Error("auth secret not loaded from env");

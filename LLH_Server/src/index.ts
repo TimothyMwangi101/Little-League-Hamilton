@@ -1,22 +1,31 @@
-import * as dotenv from 'dotenv';
-import { expand } from 'dotenv-expand';
+import "dotenv/config";
 import { serve } from '@hono/node-server';
 import app from "./app.ts";
+import { migrate } from 'drizzle-orm/node-sqlite/migrator';
+import { db } from './db/db.ts';
+import { Hono } from 'hono';
+import { StatusCodes } from 'http-status-codes';
+import { serveStatic } from '@hono/node-server/serve-static';
 
-expand(dotenv.config());
+// Railway injects PORT; locally it falls back to SERVER_PORT from your .env
+const port = Number.parseInt(process.env.PORT ?? process.env.SERVER_PORT ?? '');
+if (Number.isNaN(port))
+  throw new Error('PORT / SERVER_PORT not in env');
 
-const SERVER_PORT = process.env.SERVER_PORT;
-if (!SERVER_PORT)
-  throw new Error("port not in env")
+// serveStatic roots are relative to the working directory (LLH_Server when started via npm)
+const UI_DIST = process.env.UI_DIST ?? '../LLH_UI/dist';
+migrate(db, {
+  migrationsFolder: "./src/db/migrations",
+  migrationsSchema: "./src/db/schemas.ts",
+});
 
-const SERVER_URL = process.env.SERVER_URL;
-if (!SERVER_URL)
-  throw new Error("server url not in env")
+const server = new Hono()
+  .route('/api', app)
+  .all('/api/*', (ctx) => ctx.json({ error: 'Not found' }, StatusCodes.NOT_FOUND))
+  .use('*', serveStatic({ root: UI_DIST }))
+  // SPA fallback so client-side routes survive a refresh
+  .get('*', serveStatic({ root: UI_DIST, rewriteRequestPath: () => '/index.html' }));
 
-serve({
-    fetch: app.fetch,
-    port: Number.parseInt(SERVER_PORT, 10) 
-  }, () => {
-    console.log(`Server is running on ${SERVER_URL}`);
-  }
-);
+serve({ fetch: server.fetch, port }, () => {
+  console.log(`Server is running on port ${port}`);
+});

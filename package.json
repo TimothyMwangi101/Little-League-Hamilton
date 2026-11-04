@@ -4,6 +4,9 @@
         "LLH_Server",
         "LLH_UI"
     ],
+    "engines": {
+        "node": "26.x"
+    },
     "scripts": {
         "dev:ui": "npm run dev --workspace=llh-ui",
         "dev:server": "npm run dev --workspace=llh-server",
@@ -13,7 +16,7 @@
 
         "lint:ui": "npm run lint --workspace=llh-ui",
         "lint:server": "npm run lint --workspace=llh-server",
-
+        
         "build": "npm run build:server && npm run build:ui",
         "lint": "npm run lint:server && npm run lint:ui"
     }

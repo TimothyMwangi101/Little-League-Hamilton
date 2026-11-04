@@ -11,7 +11,9 @@ export default defineConfig(({ mode }) => {
     define: {
       'GOOGLE_MAPS_API_KEY': JSON.stringify(GOOGLE_MAPS_API_KEY),
       'GOOGLE_MAPS_MAP_ID': JSON.stringify(GOOGLE_MAPS_MAP_ID),
-      'SERVER_URL': JSON.stringify(SERVER_URL),
+    },
+    server: {
+      proxy: { '/api': SERVER_URL ?? 'http://localhost:3000' },
     },
   }
 })
