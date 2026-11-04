@@ -19,9 +19,9 @@ function Nav() {
         const response = await fetch('/api/account')
         if (isCurrent) {
           setIsLoggedIn(response.ok)
-          if (!response.ok && response.status !== 401) {
+          if (!response.ok && response.status !== 401) 
             console.error(`Unable to check login status: ${response.status}`)
-          }
+          
         }
       } catch (err) {
         console.error('Unable to check login status', err)

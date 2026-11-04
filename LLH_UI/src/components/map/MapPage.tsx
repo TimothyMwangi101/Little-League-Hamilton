@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMapsLibrary, AdvancedMarker, APIProvider, Map, Pin } from "@vis.gl/react-google-maps";
-import Parks from '../../assets/Parks.json';
+import Parks from '../../data/Parks.json';
 
 type LatLng = {
     lat: number;
@@ -80,13 +80,13 @@ export function ParkImage({ coordinates }: { coordinates: LatLng }) {
                     );
                 }
             } catch (error) {
-                if (!cancelled) {
+                if (!cancelled) 
                     console.error("Failed to fetch park photo:", error);
-                }
+                
             } finally {
-                if (!cancelled) {
+                if (!cancelled) 
                     setLoading(false);
-                }
+                
             }
         }
 

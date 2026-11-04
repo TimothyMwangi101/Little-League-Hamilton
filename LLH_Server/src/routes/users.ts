@@ -17,9 +17,9 @@ const app = new Hono()
   .get("/:id", async (ctx) => {
     const id = Number.parseInt(ctx.req.param("id") ?? -1);
 
-    if (id < 0) {
+    if (id < 0) 
       return ctx.json({ error: "Invalid user id" }, StatusCodes.BAD_REQUEST);
-    }
+    
 
     const [user] = await db.select({
       id: UsersTable.id,
@@ -28,18 +28,17 @@ const app = new Hono()
       .from(UsersTable)
       .where(eq(UsersTable.id, id));
 
-    if (!user) {
+    if (!user) 
       return ctx.json({ error: "User not found" }, StatusCodes.NOT_FOUND);
-    }
-
+    
     return ctx.json({ data: user }, StatusCodes.OK);
   })
   .delete("/:id", async (ctx) => {
     const id = Number.parseInt(ctx.req.param("id"));
 
-    if (Number.isNaN(id) || id < 0) {
+    if (Number.isNaN(id) || id < 0) 
       return ctx.json({ error: "Invalid user id" },  StatusCodes.BAD_REQUEST);
-    }
+    
     await db.delete(UsersTable)
       .where(eq(UsersTable.id, id));
 

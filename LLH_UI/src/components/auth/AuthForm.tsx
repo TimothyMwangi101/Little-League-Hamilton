@@ -70,7 +70,7 @@ export default function AuthForm({ isRegistering, onModeChange }: AuthFormProps)
       }
 
       window.dispatchEvent(new Event('auth:login'))
-      navigate('/account')
+      await navigate('/account')
     } catch (err) {
       console.error(err)
       fail('Unable to reach the server. Please try again in a moment.')

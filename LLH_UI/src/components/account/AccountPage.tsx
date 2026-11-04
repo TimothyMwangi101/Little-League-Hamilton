@@ -20,7 +20,7 @@ export default function AccountPage() {
         const response = await client.account.$get();
 
         if (response.status == StatusCodes.UNAUTHORIZED) {
-          navigate('/login', { replace: true })
+          await navigate('/login', { replace: true })
           return
         }
         const result = await response.json();
@@ -30,14 +30,14 @@ export default function AccountPage() {
           return
         }
 
-        if (isCurrent) {
+        if (isCurrent) 
           setAccount(result.data)
-        }
+        
       } catch (err) {
         console.error(err)
-        if (isCurrent) {
+        if (isCurrent) 
           setError('Unable to load your account. Please try again.')
-        }
+        
       }
     }
 

@@ -16,8 +16,12 @@
 
         "lint:ui": "npm run lint --workspace=llh-ui",
         "lint:server": "npm run lint --workspace=llh-server",
+
+        "lint:ui:fix": "npm run lint:fix --workspace=llh-ui",
+        "lint:server:fix": "npm run lint:fix --workspace=llh-server",
         
         "build": "npm run build:server && npm run build:ui",
-        "lint": "npm run lint:server && npm run lint:ui"
+        "lint": "npm run lint:server && npm run lint:ui",
+        "lint:fix": "npm run lint:server:fix && npm run lint:ui:fix"
     }
 }

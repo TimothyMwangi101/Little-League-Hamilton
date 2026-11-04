@@ -14,8 +14,8 @@ const app = new Hono()
   .route('/team', teamRoutes)
   .onError((error, ctx) => {
     if (error instanceof HTTPException)
-      if (error.status == 401)
-        return ctx.json({ error: error.message }, error.status);
+      {if (error.status == 401)
+        return ctx.json({ error: error.message }, error.status);}
 
     console.error(error);
     throw error;

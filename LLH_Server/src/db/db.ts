@@ -7,6 +7,6 @@ if (!DB_NAME)
   throw new Error('no db name');
 
 export const db = drizzle(DB_NAME, { relations });
-if (!db) {
+if (!db) 
   throw new Error("Failed to connect to the database");
-}
+

@@ -5,3 +5,4 @@ Raw Park Data/Raw_Parks.*
 Raw Park Data/Parks.*
 node_modules/
 dist/
+.vscode/

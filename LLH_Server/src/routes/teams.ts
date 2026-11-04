@@ -22,9 +22,9 @@ const app = new Hono<UserPayloadEnv>()
             .from(TeamsTable)
             .where(eq(TeamsTable.id, id));
 
-        if (!team) {
+        if (!team) 
             return ctx.json({ error: "Teamt not found" }, StatusCodes.NOT_FOUND);
-        }
+        
 
         return ctx.json({ data: team }, StatusCodes.OK);
     })
