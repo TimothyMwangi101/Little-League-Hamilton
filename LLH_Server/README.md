@@ -4,10 +4,10 @@ The Little League Hamilton server is a Hono-based API running on Node.js. It pro
 
 ## Getting started
 
-Run these commands from the `LLH_Server` directory:
+Install dependancies from the root dir, not this dir, then start the server:
 
 ```sh
-npm install
+npm run dev
 ```
 
 Create a `.env` file in `LLH_Server` with the required settings:

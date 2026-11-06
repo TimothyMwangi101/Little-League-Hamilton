@@ -9,10 +9,9 @@ The UI is a React and TypeScript single-page application built with Vite. It pro
 
 ## Getting started
 
-From the `LLH_UI` directory, install dependencies and start the development server:
+Install dependancies from the root dir, not this dir, then start the server:
 
 ```sh
-npm install
 npm run dev
 ```
 

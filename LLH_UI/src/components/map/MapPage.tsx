@@ -27,7 +27,6 @@ type PhotoCredit = {
  */
 export function ParkImage({ coordinates }: { coordinates: LatLng }) {
     const placesLibrary = useMapsLibrary("places");
-
     const [photoUrl, setPhotoUrl] = useState<string | null>(null);
     const [credits, setCredits] = useState<PhotoCredit[]>([]);
     const [loading, setLoading] = useState(true);
