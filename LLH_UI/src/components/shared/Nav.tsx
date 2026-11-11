@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink } from 'react-router'
+import { Link, NavLink, useNavigate } from 'react-router'
+import * as AuthApi from '../auth/AuthApi'
 
 const links = [
   { label: 'Dashboard', to: '/', icon: 'dashboard' },
@@ -9,7 +10,10 @@ const links = [
 ] as const
 
 function Nav() {
+  const navigate = useNavigate()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   useEffect(() => {
     let isCurrent = true
@@ -46,6 +50,22 @@ function Nav() {
       ? { ...link, label: isLoggedIn ? 'Account' : 'Login', to: isLoggedIn ? '/account' : '/login' }
       : link
   )
+
+  async function handleLogout() {
+    setIsLoggingOut(true)
+    setLogoutError('')
+
+    try {
+      await AuthApi.logout()
+      setIsLoggedIn(false)
+      await navigate('/login', { replace: true })
+    } catch (err) {
+      console.error('Unable to log out', err)
+      setLogoutError('Unable to log out. Please try again.')
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
 
   return (
     <header className="bg-surface border-b-2">
@@ -94,6 +114,25 @@ function Nav() {
               )}
             </NavLink>
           ))}
+          {isLoggedIn && (
+            <div className="ml-4 flex items-center border-l-2 border-text-main/20 pl-4">
+              <button
+                className="flex cursor-pointer items-center gap-1.5 border-2 border-text-main bg-surface px-3.5 py-2 text-xs font-bold uppercase tracking-wider text-text-main shadow-hard-hover transition-all hover:-translate-x-1 hover:-translate-y-1 hover:bg-primary hover:text-white hover:shadow-hard active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isLoggingOut}
+                onClick={() => void handleLogout()}
+                type="button">
+                <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+                  logout
+                </span>
+                <span>{isLoggingOut ? 'Logging out' : 'Logout'}</span>
+              </button>
+              {logoutError && (
+                <span role="alert" className="ml-2 text-xs font-bold text-accent">
+                  {logoutError}
+                </span>
+              )}
+            </div>
+          )}
         </nav>
       </div>
     </header>

@@ -26,5 +26,7 @@ export async function resetPassword(values: ResetPasswordValues) {
 
 export async function logout() {
   const res = await auth.logout.$post();
+  if (!res.ok)
+    throw new Error(`Logout failed: ${res.status}`);
   return res.json();
 }
