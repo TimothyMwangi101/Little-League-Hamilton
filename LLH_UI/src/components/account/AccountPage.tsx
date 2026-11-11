@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import AccountView from './Account.tsx'
-import type { InferResponseType } from "hono/client";
+import type { InferRequestType, InferResponseType } from "hono/client";
 import { StatusCodes } from "http-status-codes";
 import client from "../../client";
 
 export type Account = InferResponseType<typeof client.account.$get, StatusCodes.OK>["data"];
+export type AccountUpdates = InferRequestType<typeof client.account.$patch>["json"];
 
 export default function AccountPage() {
   const navigate = useNavigate()
   const [account, setAccount] = useState<Account>()
   const [error, setError] = useState<string>("")
+  const [updateError, setUpdateError] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     let isCurrent = true
@@ -47,6 +50,30 @@ export default function AccountPage() {
     }
   }, [navigate])
 
+  async function saveAccount(updates: AccountUpdates) {
+    setIsSaving(true)
+    setUpdateError("")
+
+    try {
+      const response = await client.account.$patch({ json: updates })
+      const result = await response.json()
+
+      if ('error' in result) {
+        setUpdateError(String(result.error))
+        return false
+      }
+
+      setAccount(result.data)
+      return true
+    } catch (err) {
+      console.error(err)
+      setUpdateError('Unable to save your account. Please try again.')
+      return false
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   if (error) {
     return (
       <main className="mx-auto w-full max-w-[1600px] p-4 sm:p-8">
@@ -63,5 +90,13 @@ export default function AccountPage() {
     )
   }
 
-  return <AccountView account={account.AccountsTable} email={account.email} />
+  return (
+    <AccountView
+      account={account.AccountsTable}
+      email={account.email}
+      isSaving={isSaving}
+      onSave={saveAccount}
+      saveError={updateError}
+    />
+  )
 }
