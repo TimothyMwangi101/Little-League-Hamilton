@@ -1,10 +1,11 @@
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from 'hono'
-import { AccountsTable, joinTeamValidator, TeamsTable, UsersTable } from "../db/schemas.ts"
+import { AccountsTable, TeamsTable, UsersTable } from "../db/schemas.ts"
 import { db } from "../db/db.ts"
 import { and, eq, isNull } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
 import { refreshJWT, authenticate, type UserPayloadEnv } from "../middleware/auth.ts";
+import { joinTeamValidator, updateAccountValidator } from '@shared/validators';
 
 const app = new Hono<UserPayloadEnv>()
     .use(authenticate, refreshJWT)
@@ -24,6 +25,35 @@ const app = new Hono<UserPayloadEnv>()
             return ctx.json({ error: "Error getting account" }, StatusCodes.NOT_FOUND);
 
         return ctx.json({ data: account }, StatusCodes.OK)
+    })
+    .patch("/", sValidator("json", updateAccountValidator, (result, ctx) => {
+        if (!result.success) {
+            console.error(result.error)
+            return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
+        }
+    }), async (ctx) => {
+        const { id } = ctx.get("jwtPayload");
+        const updates = ctx.req.valid("json");
+        const [updatedAccount] = await db
+            .update(AccountsTable)
+            .set(updates)
+            .where(eq(AccountsTable.userId, id))
+            .returning();
+
+        if (!updatedAccount)
+            return ctx.json({ error: "Account not found" }, StatusCodes.NOT_FOUND);
+
+        const [user] = await db
+            .select({ email: UsersTable.email })
+            .from(UsersTable)
+            .where(eq(UsersTable.id, id));
+
+        if (!user)
+            return ctx.json({ error: "Error getting account" }, StatusCodes.INTERNAL_SERVER_ERROR);
+
+        return ctx.json({
+            data: { AccountsTable: updatedAccount, email: user.email },
+        }, StatusCodes.OK);
     })
     .post("/create", async (ctx) => {
         const { id } = ctx.get("jwtPayload");

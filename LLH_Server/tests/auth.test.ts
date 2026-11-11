@@ -9,6 +9,7 @@ import { AccountsTable, TeamsTable, UsersTable } from "../src/db/schemas.ts";
 import { db } from "./db_test.ts";
 
 import authApp from "../src/routes/auth.ts";
+import accountApp from "../src/routes/accounts.ts";
 
 beforeAll(async () => {
   vi.stubEnv("AUTH_SECRET", "test-auth-secret-that-is-long-enough");
@@ -150,5 +151,61 @@ describe("auth routes", () => {
     await expect(response.json()).resolves.toEqual({ data: null });
     expect(response.headers.get("set-cookie")).toContain("token=");
     expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+  });
+
+  it("updates the signed-in user's account fields", async () => {
+    const credentials = { email: "account@email.com", password: "passphrase" };
+    await authApp.request("/register", jsonRequest(credentials));
+    const login = await authApp.request("/login", jsonRequest(credentials));
+    const cookie = login.headers.get("set-cookie")?.split(";")[0];
+
+    const response = await accountApp.request("/", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: cookie ?? "",
+      },
+      body: JSON.stringify({
+        firstName: "  Alex ",
+        lastName: "Johnson",
+        region: "Lower Hamilton",
+        prefers: ["Baseball", "Soccer"],
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      data: {
+        AccountsTable: {
+          firstName: "Alex",
+          lastName: "Johnson",
+          region: "Lower Hamilton",
+          prefers: ["Baseball", "Soccer"],
+        },
+        email: credentials.email,
+      },
+    });
+  });
+
+  it("rejects invalid account updates without changing the account", async () => {
+    const credentials = { email: "invalid-account@email.com", password: "passphrase" };
+    await authApp.request("/register", jsonRequest(credentials));
+    const login = await authApp.request("/login", jsonRequest(credentials));
+    const cookie = login.headers.get("set-cookie")?.split(";")[0];
+
+    const response = await accountApp.request("/", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: cookie ?? "",
+      },
+      body: JSON.stringify({ region: "Toronto" }),
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({ error: "Invalid request body" });
+    await expect(db.select().from(AccountsTable)).resolves.toMatchObject([
+      { region: null },
+    ]);
   });
 });
