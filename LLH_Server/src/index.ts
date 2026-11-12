@@ -13,7 +13,7 @@ if (Number.isNaN(port))
   throw new Error('PORT / SERVER_PORT not in env');
 
 // serveStatic roots are relative to the working directory (LLH_Server when started via npm)
-const UI_DIST = process.env.UI_DIST ?? '../LLH_UI/dist';
+const UI_DIST = process.env.UI_DIST ?? '../../LLH_UI/dist';
 migrate(db, {
   migrationsFolder: "./src/db/migrations",
   migrationsSchema: "./src/db/schemas.ts",
