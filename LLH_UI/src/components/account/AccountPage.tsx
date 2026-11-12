@@ -7,6 +7,7 @@ import client from "../../client";
 
 export type Account = InferResponseType<typeof client.account.$get, StatusCodes.OK>["data"];
 export type AccountUpdates = InferRequestType<typeof client.account.$patch>["json"];
+export type CreateTeamRequest = InferRequestType<typeof client.team.create.$post>["json"];
 
 export default function AccountPage() {
   const navigate = useNavigate()
@@ -14,6 +15,8 @@ export default function AccountPage() {
   const [error, setError] = useState<string>("")
   const [updateError, setUpdateError] = useState("")
   const [isSaving, setIsSaving] = useState(false)
+  const [createTeamError, setCreateTeamError] = useState("")
+  const [isCreatingTeam, setIsCreatingTeam] = useState(false)
 
   useEffect(() => {
     let isCurrent = true
@@ -33,14 +36,14 @@ export default function AccountPage() {
           return
         }
 
-        if (isCurrent) 
+        if (isCurrent)
           setAccount(result.data)
-        
+
       } catch (err) {
         console.error(err)
-        if (isCurrent) 
+        if (isCurrent)
           setError('Unable to load your account. Please try again.')
-        
+
       }
     }
 
@@ -49,6 +52,29 @@ export default function AccountPage() {
       isCurrent = false
     }
   }, [navigate])
+
+  async function createTeam(team: CreateTeamRequest) {
+    setIsCreatingTeam(true)
+    setCreateTeamError("")
+
+    try {
+      const response = await client.team.create.$post({ json: team })
+      const result = await response.json()
+
+      if ('error' in result) {
+        setCreateTeamError(String(result.error))
+        return false
+      }
+
+      return true
+    } catch (err) {
+      console.error(err)
+      setCreateTeamError('Unable to create your team. Please try again.')
+      return false
+    } finally {
+      setIsCreatingTeam(false)
+    }
+  }
 
   async function saveAccount(updates: AccountUpdates) {
     setIsSaving(true)
@@ -97,6 +123,9 @@ export default function AccountPage() {
       isSaving={isSaving}
       onSave={saveAccount}
       saveError={updateError}
+      onCreateTeam={createTeam}
+      isCreatingTeam={isCreatingTeam}
+      createTeamError={createTeamError}
     />
   )
 }
