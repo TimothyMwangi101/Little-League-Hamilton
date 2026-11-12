@@ -1,26 +1,31 @@
 {
-    "name": "llh",
+    "name": "@llh",
     "workspaces": [
         "LLH_Server",
-        "LLH_UI"
+        "LLH_UI",
+        "LLH_Shared"
     ],
     "type": "module",
     "engines": {
         "node": "26.x"
     },
     "scripts": {
-        "dev:ui": "npm run dev --workspace=llh-ui",
-        "dev:server": "npm run dev --workspace=llh-server",
-        "build:ui": "npm run build --workspace=llh-ui",
-        "build:server": "npm run build --workspace=llh-server",
-        "lint:ui": "npm run lint --workspace=llh-ui",
-        "lint:server": "npm run lint --workspace=llh-server",
-        "lint:ui:fix": "npm run lint:fix --workspace=llh-ui",
-        "lint:server:fix": "npm run lint:fix --workspace=llh-server",
+        "dev:ui": "npm run dev --workspace=@llh/ui",
+        "dev:server": "npm run dev --workspace=@llh/server",
+
+        "build:ui": "npm run build --workspace=@llh/ui",
+        "build:server": "npm run build --workspace=@llh/server",
+
+        "lint:ui": "npm run lint --workspace=@llh/ui",
+        "lint:server": "npm run lint --workspace=@llh/server",
+        "lint:ui:fix": "npm run lint:fix --workspace=@llh/ui",
+        "lint:server:fix": "npm run lint:fix --workspace=@llh/server",
+
         "build": "npm run build:server && npm run build:ui",
         "lint": "npm run lint:server && npm run lint:ui",
         "lint:fix": "npm run lint:server:fix && npm run lint:ui:fix",
-        "start": "npm --workspace=llh-server start"
+        
+        "start": "npm --workspace=@llh/server start"
     },
     "dependencies": {
         "zod": "^4.6.7",

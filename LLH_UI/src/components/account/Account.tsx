@@ -1,9 +1,9 @@
 import { useState } from "react"
 import type { Account, AccountUpdates } from "./AccountPage"
-import { regions, sports, type Region, type Sport } from '@shared/types';
+import { regions, sports, type Region, type Sport } from '../../../../LLH_Shared/types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updateAccountValidator } from '@shared/validators';
+import { updateAccountValidator } from '../../../../LLH_Shared/validators';
 import * as z from 'zod';
 
 type AccountViewProps = {

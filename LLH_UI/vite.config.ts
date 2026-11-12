@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        "@shared": path.resolve(import.meta.dirname, "../shared")
+        "@shared": path.resolve(import.meta.dirname, "../LLH_Shared")
       }
     }
   }

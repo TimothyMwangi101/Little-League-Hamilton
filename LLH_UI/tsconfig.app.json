@@ -9,8 +9,8 @@
     "skipLibCheck": true,
     "paths": {
       "@server/app": ["../LLH_Server/src/app.ts"],
-      "@shared/types": ["../shared/types.ts"],
-      "@shared/validators": ["../shared/validators.ts"],
+      "@shared/types": ["../LLH_Shared/types.ts"],
+      "@shared/validators": ["../LLH_Shared/validators.ts"],
     },
     "strict": true,
 
@@ -28,5 +28,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "../shared"]
+  "include": ["src", "../LLH_Shared"]
 }

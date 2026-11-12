@@ -1,0 +1,11 @@
+{
+  "name": "@llh/shared",
+  "version": "1.0.0",
+  "description": "hold shared types and validators",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./types": "./types.ts",
+    "./validators": "./validators.ts"
+  }
+}

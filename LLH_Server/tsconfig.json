@@ -12,5 +12,5 @@
     "outDir": "./dist",
     "rewriteRelativeImportExtensions": true,
   },
-  "include": ["src/**/*", "../shared/**/*"]
+  "include": ["src/**/*", "../LLH_Shared/**/*"]
 }

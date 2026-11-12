@@ -5,7 +5,7 @@ import { db } from "../db/db.ts"
 import { and, eq, isNull } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
 import { refreshJWT, authenticate, type UserPayloadEnv } from "../middleware/auth.ts";
-import { joinTeamValidator, updateAccountValidator } from '../../../shared/validators.ts';
+import { joinTeamValidator, updateAccountValidator } from '../../../LLH_Shared/validators.ts';
 
 const app = new Hono<UserPayloadEnv>()
     .use(authenticate, refreshJWT)
