@@ -11,10 +11,6 @@
     "rootDir": "../",
     "outDir": "./dist",
     "rewriteRelativeImportExtensions": true,
-    "paths": {
-      "@shared/types": ["../shared/types.ts"],
-      "@shared/validators": ["../shared/validators.ts"],
-    }
   },
   "include": ["src/**/*", "../shared/**/*"]
 }

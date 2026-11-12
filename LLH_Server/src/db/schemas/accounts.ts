@@ -2,8 +2,7 @@ import { sql } from "drizzle-orm";
 import { integer, text, sqliteTable, } from "drizzle-orm/sqlite-core";
 import { UsersTable } from "./users.ts";
 import { TeamsTable } from "./teams.ts";
-import { regions } from '@shared/types';
-
+import { regions } from '../../../../shared/types.ts';
 
 
 export const AccountsTable = sqliteTable("accounts", {
