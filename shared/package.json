@@ -1,6 +1,0 @@
-{
-  "name": "shared",
-  "version": "1.0.0",
-  "description": "holds shared types and validators",
-  "type": "module"
-}
