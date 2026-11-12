@@ -2,7 +2,8 @@
     "name": "llh",
     "workspaces": [
         "LLH_Server",
-        "LLH_UI"
+        "LLH_UI",
+        "shared"
     ],
     "type": "module",
     "engines": {
