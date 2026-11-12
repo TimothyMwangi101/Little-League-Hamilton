@@ -20,7 +20,8 @@
         "lint:server:fix": "npm run lint:fix --workspace=llh-server",
         "build": "npm run build:server && npm run build:ui",
         "lint": "npm run lint:server && npm run lint:ui",
-        "lint:fix": "npm run lint:server:fix && npm run lint:ui:fix"
+        "lint:fix": "npm run lint:server:fix && npm run lint:ui:fix",
+        "start": "npm --workspace=llh-server start"
     },
     "dependencies": {
         "zod": "^4.6.7",
