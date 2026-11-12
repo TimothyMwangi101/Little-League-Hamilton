@@ -3,10 +3,9 @@ import { Link } from "react-router"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { invitePolicies } from "@shared/types"
 import { createTeamValidator } from "@shared/validators"
 import type { Account, CreateTeamRequest } from "./AccountPage"
-import { actionButtonClass, primaryButtonClass } from "./accountStyles"
+import Button, { actionButtonClass } from "../shared/Button"
 
 type TeamsSectionProps = {
     account: Account["AccountsTable"]
@@ -27,9 +26,8 @@ export default function TeamsSection({
     const [teamCreated, setTeamCreated] = useState(false)
     const {
         handleSubmit,
-        register,
         reset,
-        formState: { errors, isSubmitting },
+        formState: { isSubmitting },
     } = useForm<CreateTeamFormValues>({
         resolver: zodResolver(createTeamValidator),
         defaultValues: { name: "", invitePolicy: "Open" },
@@ -74,67 +72,38 @@ export default function TeamsSection({
                 )}
                 {isCreatingForm ? (
                     <form className="grid gap-3 border-t-2 border-text-main/10 pt-4" onSubmit={handleSubmit(createTeam)}>
-                        {/* <label className="text-sm font-bold uppercase tracking-wide text-muted">
-                            Team name
-                            <input
-                                autoComplete="organization"
-                                className="mt-1 w-full border-2 border-text-main bg-surface p-2 text-text-main"
-                                maxLength={50}
-                                aria-invalid={Boolean(errors.name)}
-                                disabled={isBusy}
-                                {...register("name")}
-                            />
-                            {errors.name?.message && (
-                                <span role="alert" className="mt-1 block text-xs font-bold text-accent">
-                                    {errors.name.message}
-                                </span>
-                            )}
-                        </label>
-                        <label className="text-sm font-bold uppercase tracking-wide text-muted">
-                            Invite policy
-                            <select
-                                className="mt-1 w-full border-2 border-text-main bg-surface p-2 text-text-main"
-                                disabled={isBusy}
-                                {...register("invitePolicy")}
-                            >
-                                {invitePolicies.map((policy) => (
-                                    <option key={policy} value={policy}>
-                                        {policy === "InviteOnly" ? "Invite Only" : policy}
-                                    </option>
-                                ))}
-                            </select>
-                        </label> */}
                         <div className="flex flex-wrap gap-2">
-                            <button className={primaryButtonClass} disabled={isBusy} type="submit">
+                            <Button variant="primary" disabled={isBusy} type="submit">
+                                <span aria-hidden="true" className="material-symbols-outlined mr-1 align-middle text-base">group_add</span>
                                 {isBusy ? "Creating..." : "Create team"}
-                            </button>
-                            <button
-                                className={actionButtonClass}
+
+                            </Button>
+                            <Button
                                 disabled={isBusy}
                                 onClick={() => {
                                     reset({ name: "", invitePolicy: "Open" })
                                     setIsCreatingForm(false)
                                 }}
                                 type="button"
-                            >
+                                variant="action">
                                 Cancel
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 ) : (
                     <div className="flex flex-col gap-3 border-t-2 border-text-main/10 pt-4 sm:flex-row">
-                        <button
-                            className={primaryButtonClass}
+                        <Button
                             disabled={isBusy}
                             onClick={() => {
                                 setTeamCreated(false)
                                 setIsCreatingForm(true)
                             }}
                             type="button"
-                        >
+                            variant="primary">
+
                             <span aria-hidden="true" className="material-symbols-outlined mr-1 align-middle text-base">group_add</span>
                             Create a team
-                        </button>
+                        </Button>
                         <Link className={`${actionButtonClass} justify-center`} to="/search">
                             Browse teams
                         </Link>

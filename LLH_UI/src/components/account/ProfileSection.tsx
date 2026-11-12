@@ -5,7 +5,7 @@ import * as z from "zod"
 import { regions, sports, type Region, type Sport } from "@shared/types"
 import { updateAccountValidator } from "@shared/validators"
 import type { Account, AccountUpdates } from "./AccountPage"
-import { actionButtonClass, primaryButtonClass } from "./accountStyles"
+import Button from "../shared/Button"
 
 type ProfileSectionProps = {
     account: Account["AccountsTable"]
@@ -79,7 +79,7 @@ export default function ProfileSection({ account, email, isSaving, onSave }: Pro
             <div className="flex flex-col justify-between gap-6 border-2 border-text-main bg-surface p-5 shadow-hard sm:p-7">
                 <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
                     <div aria-hidden="true" className="flex size-32 shrink-0 items-center justify-center border-2 border-text-main bg-primary text-white shadow-hard sm:size-36">
-                        <span className="material-symbols-outlined text-7xl">person</span>
+                        <span className="material-symbols-outlined" style={{fontSize: "64px" }}>person</span>
                     </div>
                     <div className="min-w-0 flex-1">
                         <h2 className="wrap-break-words font-heading text-2xl font-bold uppercase text-primary sm:text-3xl" id="profile-heading">
@@ -87,18 +87,19 @@ export default function ProfileSection({ account, email, isSaving, onSave }: Pro
                         </h2>
                         <p className="mt-1 break-all font-bold uppercase tracking-wide text-muted">{email}</p>
                         {!isEditingName && (
-                            <button
-                                className={`${actionButtonClass} mt-4`}
+                            <Button
+                                className="mt-4"
                                 disabled={isBusy}
                                 onClick={() => {
                                     resetAccountForm()
                                     setIsEditingName(true)
                                 }}
                                 type="button"
+                                variant="action"
                             >
                                 <span aria-hidden="true" className="material-symbols-outlined text-base">edit</span>
                                 Edit name
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>
@@ -138,20 +139,20 @@ export default function ProfileSection({ account, email, isSaving, onSave }: Pro
                         )}
                     </label>
                     <div className="flex gap-2 sm:col-span-2">
-                        <button className={primaryButtonClass} disabled={isBusy} type="submit">
+                        <Button variant="primary" disabled={isBusy} type="submit">
                             {isBusy ? "Saving..." : "Save name"}
-                        </button>
-                        <button
-                            className={actionButtonClass}
+                        </Button>
+                        <Button
                             disabled={isBusy}
                             onClick={() => {
                                 resetAccountForm()
                                 setIsEditingName(false)
                             }}
                             type="button"
+                            variant="action"
                         >
                             Cancel
-                        </button>
+                        </Button>
                     </div>
                 </form>
                 )}
@@ -165,18 +166,18 @@ export default function ProfileSection({ account, email, isSaving, onSave }: Pro
                         <p className="mt-1 wrap-break-words font-bold text-text-main">{account.region ?? "No region selected"}</p>
                     </div>
                     {!isEditingRegion && (
-                        <button
+                        <Button
                             aria-label="Edit region"
-                            className={actionButtonClass}
                             disabled={isBusy}
                             onClick={() => {
                                 resetAccountForm()
                                 setIsEditingRegion(true)
                             }}
                             type="button"
+                            variant="action"
                         >
                             Edit
-                        </button>
+                        </Button>
                     )}
                 </div>
                 {isEditingRegion && (
@@ -198,20 +199,20 @@ export default function ProfileSection({ account, email, isSaving, onSave }: Pro
                             {errors.region.message}
                         </span>
                     )}
-                    <button className={primaryButtonClass} disabled={isBusy} type="submit">
+                    <Button variant="primary" disabled={isBusy} type="submit">
                         {isBusy ? "Saving..." : "Save"}
-                    </button>
-                    <button
-                        className={actionButtonClass}
+                    </Button>
+                    <Button
                         disabled={isBusy}
                         onClick={() => {
                             resetAccountForm()
                             setIsEditingRegion(false)
                         }}
                         type="button"
+                        variant="action"
                     >
                         Cancel
-                    </button>
+                    </Button>
                 </form>
                 )}
                 <div className="flex items-start gap-3 border-t border-text-main/10 pt-4">

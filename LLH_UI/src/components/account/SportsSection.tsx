@@ -5,7 +5,7 @@ import * as z from "zod"
 import { sports, type Sport } from "@shared/types"
 import { updateAccountValidator } from "@shared/validators"
 import type { Account, AccountUpdates } from "./AccountPage"
-import { actionButtonClass, primaryButtonClass } from "./accountStyles"
+import Button from "../shared/Button"
 
 type SportsSectionProps = {
     account: Account["AccountsTable"]
@@ -45,8 +45,7 @@ export default function SportsSection({ account, isSaving, onSave }: SportsSecti
                     Sports I play
                 </h2>
                 {!isEditing && (
-                    <button
-                        className={actionButtonClass}
+                    <Button
                         disabled={isBusy}
                         onClick={() => {
                             reset({
@@ -58,9 +57,10 @@ export default function SportsSection({ account, isSaving, onSave }: SportsSecti
                             setIsEditing(true)
                         }}
                         type="button"
+                        variant="action"
                     >
                         Edit
-                    </button>
+                    </Button>
                 )}
             </div>
             <div className="p-5">
@@ -88,17 +88,17 @@ export default function SportsSection({ account, isSaving, onSave }: SportsSecti
                             </p>
                         )}
                         <div className="mt-5 flex gap-2">
-                            <button className={primaryButtonClass} disabled={isBusy} type="submit">
+                            <Button variant="primary" disabled={isBusy} type="submit">
                                 {isBusy ? "Saving..." : "Save sports"}
-                            </button>
-                            <button
-                                className={actionButtonClass}
+                            </Button>
+                            <Button
                                 disabled={isBusy}
                                 onClick={() => setIsEditing(false)}
                                 type="button"
+                                variant="action"
                             >
                                 Cancel
-                            </button>
+                            </Button>
                         </div>
                     </form>
                 ) : account.prefers.length > 0 ? (
