@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react"
+import { useEffect, useRef } from "react"
 import { useForm } from "react-hook-form"
-import { Link } from "react-router"
 import * as z from "zod"
 import { createTeamValidator } from "@shared/validators"
 import { sports, type Sport } from "@shared/types"
@@ -12,6 +11,13 @@ import type { InferRequestType } from "hono/client"
 export type Team = InferRequestType<typeof client.team.create.$post>["json"]
 type CreateTeamFormValues = z.input<typeof createTeamValidator>
 
+type TeamFormProps = {
+    onClose: () => void
+    onCreateTeam: (team: Team) => Promise<boolean>
+    isCreatingTeam: boolean
+    createTeamError: string
+}
+
 const sportIcons: Record<Sport, string> = {
     Basketball: "sports_basketball",
     Baseball: "sports_baseball",
@@ -21,66 +27,57 @@ const sportIcons: Record<Sport, string> = {
     Tennis: "sports_tennis",
 }
 
-export default function CreateTeam() {
-    const [successMessage, setSuccessMessage] = useState("")
+export default function CreateTeam({ onClose, onCreateTeam, isCreatingTeam, createTeamError }: TeamFormProps) {
+    const dialogRef = useRef<HTMLDialogElement>(null)
     const { clearErrors, formState: { errors, isSubmitting },
-        handleSubmit, register, reset,setError } = useForm<CreateTeamFormValues>({
-        resolver: zodResolver(createTeamValidator),
-        defaultValues: { name: "", invitePolicy: "Open" },
-    })
+        handleSubmit, register } = useForm<CreateTeamFormValues>({
+            resolver: zodResolver(createTeamValidator),
+            defaultValues: { name: "", invitePolicy: "Open" },
+        })
+
+    useEffect(() => {
+        const dialog = dialogRef.current
+        if (!dialog) return
+
+        dialog.showModal()
+        // return () => {
+        //     if (dialog.open) dialog.close()
+        // }
+    }, [])
 
     async function createTeam(values: CreateTeamFormValues) {
-        setSuccessMessage("")
         clearErrors()
-
-        try {
-            const response = await client.team.create.$post({ json: values })
-            const result = await response.json()
-
-            if ("error" in result) {
-                setError("root.serverError", { message: String(result.error) })
-                return
-            }
-
-            reset({ name: "", invitePolicy: "Open" })
-            setSuccessMessage("Your team was created successfully.")
-        } catch (error) {
-            console.error(error)
-            setError("root.serverError", {
-                message: "Unable to create your team. Please try again.",
-            })
-        }
+        if (await onCreateTeam(values)) onClose()
     }
 
     const hasValidationErrors = Boolean(errors.name || errors.sport)
 
     return (
-        <>
-            <header className="sticky top-0 z-10 border-b-2 border-text-main bg-surface p-4 shadow-hard">
-                <Link
-                    className="inline-flex items-center gap-2 font-bold text-text-main transition-colors hover:text-primary"
-                    to="/account">
-                    <span aria-hidden="true" className="material-symbols-outlined">arrow_back</span>
-                    Back to Account
-                </Link>
+        <dialog
+            aria-labelledby="create-team-title"
+            className="m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-150 overflow-y-auto border-2 border-text-main bg-surface p-0 text-text-main shadow-hard backdrop:bg-text-main/60"
+            onClose={onClose}
+            onClick={(event) => {
+                if (event.target === event.currentTarget) onClose()
+            }}
+            ref={dialogRef}>
+            <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b-2 border-text-main bg-surface p-4">
+                <h1 className="font-heading text-2xl font-bold leading-tight tracking-tight" id="create-team-title">
+                    Create a New Team
+                </h1>
+                <button
+                    aria-label="Close create team form"
+                    className="border-2 border-text-main px-3 py-1 font-bold hover:bg-primary hover:text-white"
+                    onClick={onClose}
+                    type="button"
+                >
+                    <span aria-hidden="true" className="material-symbols-outlined">close</span>
+                </button>
             </header>
-            <main className="mx-auto w-full max-w-150 px-4 py-8 pb-24">
-                <div className="mb-8 flex flex-col gap-3">
-                    <h1 className="font-heading text-4xl font-bold leading-tight tracking-tight text-text-main">
-                        Create a New Team
-                    </h1>
-                    <p className="text-lg font-bold text-muted">Team Details</p>
-                </div>
-
-                {successMessage && (
-                    <p aria-live="polite" className="mb-6 border-2 border-primary bg-surface p-4 font-bold text-primary" role="status">
-                        {successMessage}
-                    </p>
-                )}
-
-                {errors.root?.serverError && (
+            <main className="px-4 py-6 sm:px-8">
+                {createTeamError && (
                     <p className="mb-6 border-2 border-accent bg-surface p-4 font-bold text-accent" role="alert">
-                        {errors.root.serverError.message}
+                        {createTeamError}
                     </p>
                 )}
 
@@ -107,7 +104,7 @@ export default function CreateTeam() {
                 )}
 
                 <form className="flex flex-col gap-12" noValidate onSubmit={handleSubmit(createTeam)}>
-                    <section className="scroll-mt-24" id="sport-selection">
+                    <section className="scroll-mt-24" id="sport-selection" tabIndex={-1}>
                         <fieldset>
                             <legend className="mb-6 font-heading text-2xl font-bold leading-tight text-text-main">
                                 Which sport will your team play?
@@ -147,9 +144,6 @@ export default function CreateTeam() {
                     </section>
 
                     <section className="flex flex-col gap-4">
-                        <h2 className="font-heading text-2xl font-bold leading-tight text-text-main">
-                            Basic Information
-                        </h2>
                         <div className="flex flex-col gap-2">
                             <label className="text-lg font-bold text-text-main" htmlFor="team-name">
                                 Team Name
@@ -171,14 +165,17 @@ export default function CreateTeam() {
                         </div>
                     </section>
 
-                    <div className="border-t-2 border-text-main/20 pt-6">
-                        <Button className="w-full py-4 text-base" disabled={isSubmitting} type="submit" variant="primary">
-                            {isSubmitting ? "Creating..." : "Create Team"}
-                            <span aria-hidden="true" className="material-symbols-outlined">arrow_forward</span>
+                    <div className="flex flex-col-reverse gap-3 border-t-2 border-text-main/20 pt-6 sm:flex-row sm:justify-end">
+                        <Button onClick={onClose} type="button" variant="action">
+                            Cancel
+                        </Button>
+                        <Button className="py-3 text-base" disabled={isSubmitting || isCreatingTeam} type="submit" variant="primary">
+                            <span aria-hidden="true" className="material-symbols-outlined mr-1 align-middle text-base">group_add</span>
+                            {isSubmitting || isCreatingTeam ? "Creating..." : "Create Team"}
                         </Button>
                     </div>
                 </form>
             </main>
-        </>
+        </dialog>
     )
 }

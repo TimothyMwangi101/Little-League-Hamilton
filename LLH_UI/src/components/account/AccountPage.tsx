@@ -66,6 +66,15 @@ export default function AccountPage() {
         return false
       }
 
+      setAccount((currentAccount) => currentAccount
+        ? {
+            ...currentAccount,
+            AccountsTable: {
+              ...currentAccount.AccountsTable,
+              team: result.data.id,
+            },
+          }
+        : currentAccount)
       return true
     } catch (err) {
       console.error(err)

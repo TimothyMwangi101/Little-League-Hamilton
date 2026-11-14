@@ -1,4 +1,4 @@
-import { TeamsTable } from "../db/schemas.ts";
+import { AccountsTable, TeamsTable } from "../db/schemas.ts";
 import { db } from "../db/db.ts";
 import { eq } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
@@ -13,7 +13,7 @@ const app = new Hono<UserPayloadEnv>()
         const teams = await db.select().from(TeamsTable);
         return ctx.json({ data: teams }, StatusCodes.OK);
     })
-    .get("/:id", async (ctx) => {
+    .get("/", async (ctx) => {
         const { id } = ctx.get('jwtPayload') ?? undefined;
 
         if (!id)
@@ -49,6 +49,15 @@ const app = new Hono<UserPayloadEnv>()
             .insert(TeamsTable)
             .values({ name, captainId: id, invitePolicy })
             .returning();
+
+        const [account] = await db
+            .update(AccountsTable)
+            .set({ team: team.id })
+            .where(eq(AccountsTable.userId, id))
+            .returning({ userId: AccountsTable.userId });
+
+        if (!account)
+            return ctx.json({ error: "Account not found" }, StatusCodes.NOT_FOUND);
 
         return ctx.json({ data: team }, StatusCodes.CREATED);
     }).delete("/", async (ctx) => {
