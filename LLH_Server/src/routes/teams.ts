@@ -10,10 +10,6 @@ import { createTeamValidator } from "../../../LLH_Shared/validators.ts";
 const app = new Hono<UserPayloadEnv>()
     .use(authenticate, refreshJWT)
     .get("/", async (ctx) => {
-        const teams = await db.select().from(TeamsTable);
-        return ctx.json({ data: teams }, StatusCodes.OK);
-    })
-    .get("/", async (ctx) => {
         const { id } = ctx.get('jwtPayload') ?? undefined;
 
         if (!id)

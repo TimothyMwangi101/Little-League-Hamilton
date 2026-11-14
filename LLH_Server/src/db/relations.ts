@@ -22,5 +22,27 @@ export const relations = defineRelations(schema, r => ({
             from: r.TeamsTable.id,
             to: r.AccountsTable.team
         }),
+        challengedMatches: r.many.MatchesTable({
+            from: r.TeamsTable.id,
+            to: r.MatchesTable.challengerId,
+            alias: "challenger"
+        }),
+        opponentMatches: r.many.MatchesTable({
+            from: r.TeamsTable.id,
+            to: r.MatchesTable.opponentId,
+            alias: "opponent"
+        }),
+    },
+    MatchesTable: {
+        challenger: r.one.TeamsTable({
+            from: r.MatchesTable.challengerId,
+            to: r.TeamsTable.id,
+            alias: "challenger"
+        }),
+        opponent: r.one.TeamsTable({
+            from: r.MatchesTable.opponentId,
+            to: r.TeamsTable.id,
+            alias: "opponent"
+        }),
     }
 }));

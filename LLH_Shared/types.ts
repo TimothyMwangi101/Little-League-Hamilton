@@ -6,3 +6,6 @@ export type Sport = (typeof sports)[number]
 
 export const invitePolicies = ["Open", "InviteOnly"] as const
 export type InvitePolicy = (typeof invitePolicies)[number]
+
+export const matchStatus = ["Accepted", "Rejected", "Pending"] as const
+export type MatchStatus = (typeof matchStatus)[number]

@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { integer, text, sqliteTable, } from "drizzle-orm/sqlite-core";
 import { UsersTable } from "./users.ts";
 import { TeamsTable } from "./teams.ts";
-import { regions } from '../../../../LLH_Shared/types.ts';
+import { regions, type Sport } from '../../../../LLH_Shared/types.ts';
 
 
 export const AccountsTable = sqliteTable("accounts", {
@@ -11,7 +11,7 @@ export const AccountsTable = sqliteTable("accounts", {
   firstName: text().default(sql`NULL`),
   lastName: text().default(sql`NULL`),
   region: text({ enum: regions }).default(sql`NULL`),
-  prefers: text("prefers", { mode: "json" }).$type<string[]>().default(sql`(json_array())`).notNull(),
+  prefers: text({ mode: "json" }).$type<Sport[]>().default(sql`(json_array())`).notNull(),
   goals: integer({ mode: "number" }).default(0).notNull(),
   assists: integer({ mode: "number" }).default(0).notNull(),
   wins: integer({ mode: "number" }).default(0).notNull(),
