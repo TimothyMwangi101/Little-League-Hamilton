@@ -1,31 +1,48 @@
-import { useMemo, useState } from 'react'
-const sports = ['Basketball', 'Baseball', 'Football', 'Soccer', 'Bocce', 'Tennis'] as const
-const regions = ['Hamilton Mountain', 'Lower Hamilton'] as const
+import { useEffect, useMemo, useState } from 'react'
+import { invitePolicies, type InvitePolicy } from '@shared/types';
+import client from '../../client';
+import type { InferResponseType } from 'hono';
+import type { StatusCodes } from 'http-status-codes';
 
-type Sport = (typeof sports)[number]
-type Region = (typeof regions)[number]
+type Teams = InferResponseType<typeof client.teams.$get, StatusCodes.OK>["data"];
 
-type Team = {
-  id: number
-  name: string
-  sport: Sport
-  captain: string
-  region: Region
-  open: boolean
-}
-
-const teams: Team[] = [
-  { id: 1, name: 'Mountain Hoopsters', sport: 'Basketball', captain: 'Sarah J.', region: 'Lower Hamilton', open: true },
-  { id: 2, name: 'The Backboard Breakers', sport: 'Basketball', captain: 'Mike T.', region: 'Lower Hamilton', open: true },
-  { id: 3, name: 'Escarpment Elite', sport: 'Basketball', captain: 'Alex W.', region: 'Lower Hamilton', open: true },
-  { id: 4, name: 'Concession Cruisers', sport: 'Basketball', captain: 'David L.', region: 'Lower Hamilton', open: false },
-]
-
-function SearchPage() {
+export default function SearchPage() {
   const [query, setQuery] = useState('')
-  const [selectedSports, setSelectedSports] = useState<Sport[]>(['Basketball'])
-  const [selectedRegions, setSelectedRegions] = useState<Region[]>(['Lower Hamilton'])
+  const [teams, setTeams] = useState<Teams>([])
+  const [selectedInvitePolicies, setSelectedInvitePolicies] = useState<InvitePolicy[]>([])
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [reloadCount, setReloadCount] = useState(0)
+
+  useEffect(() => {
+    let isCurrent = true
+
+    async function loadTeams() {
+      setIsLoading(true)
+      setLoadError('')
+
+      try {
+        const response = await client.teams.$get()
+        const result = await response.json()
+
+        if (!response.ok || 'error' in result)
+          throw new Error('error' in result ? String(result.error) : 'Unable to load teams.')
+
+        if (isCurrent) setTeams(result.data)
+      } catch (error) {
+        console.error(error)
+        if (isCurrent) setLoadError('Unable to load teams. Please try again.')
+      } finally {
+        if (isCurrent) setIsLoading(false)
+      }
+    }
+
+    void loadTeams()
+    return () => {
+      isCurrent = false
+    }
+  }, [reloadCount])
 
   const filteredTeams = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
@@ -34,30 +51,25 @@ function SearchPage() {
       const matchesQuery =
         normalizedQuery.length === 0 ||
         team.name.toLowerCase().includes(normalizedQuery) ||
-        team.captain.toLowerCase().includes(normalizedQuery)
-      const matchesSport = selectedSports.length === 0 || selectedSports.includes(team.sport)
-      const matchesRegion = selectedRegions.length === 0 || selectedRegions.includes(team.region)
+        String(team.captainId).includes(normalizedQuery)
+      const matchesInvitePolicy =
+        selectedInvitePolicies.length === 0 || selectedInvitePolicies.includes(team.invitePolicy)
 
-      return matchesQuery && matchesSport && matchesRegion
+      return matchesQuery && matchesInvitePolicy
     })
-  }, [query, selectedRegions, selectedSports])
+  }, [query, selectedInvitePolicies, teams])
 
-  function toggleSport(sport: Sport) {
-    setSelectedSports((current) =>
-      current.includes(sport) ? current.filter((item) => item !== sport) : [...current, sport],
-    )
-  }
-
-  function toggleRegion(region: Region) {
-    setSelectedRegions((current) =>
-      current.includes(region) ? current.filter((item) => item !== region) : [...current, region],
+  function toggleInvitePolicy(invitePolicy: InvitePolicy) {
+    setSelectedInvitePolicies((current) =>
+      current.includes(invitePolicy)
+        ? current.filter((item) => item !== invitePolicy)
+        : [...current, invitePolicy],
     )
   }
 
   function clearFilters() {
     setQuery('')
-    setSelectedSports([])
-    setSelectedRegions([])
+    setSelectedInvitePolicies([])
   }
 
   function renderFilters() {
@@ -77,37 +89,20 @@ function SearchPage() {
         <div className="space-y-8">
           <fieldset>
             <legend className="mb-4 w-full border-b-2 border-text-main pb-2 text-xl font-bold">
-              Sport
+              Team access
             </legend>
             <div className="space-y-4">
-              {sports.map((sport) => (
-                <label className="group flex cursor-pointer items-center gap-3" key={sport}>
+              {invitePolicies.map((invitePolicy) => (
+                <label className="group flex cursor-pointer items-center gap-3" key={invitePolicy}>
                   <input
-                    checked={selectedSports.includes(sport)}
+                    checked={selectedInvitePolicies.includes(invitePolicy)}
                     className="size-6 cursor-pointer appearance-none border-2 border-text-main bg-white checked:bg-primary checked:before:block checked:before:text-center checked:before:text-lg checked:before:font-bold checked:before:text-white checked:before:content-['✓']"
-                    onChange={() => toggleSport(sport)}
+                    onChange={() => toggleInvitePolicy(invitePolicy)}
                     type="checkbox"
                   />
-                  <span className="text-lg group-hover:font-bold">{sport}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend className="mb-4 w-full border-b-2 border-text-main pb-2 text-xl font-bold">
-              Region
-            </legend>
-            <div className="space-y-4">
-              {regions.map((region) => (
-                <label className="group flex cursor-pointer items-center gap-3" key={region}>
-                  <input
-                    checked={selectedRegions.includes(region)}
-                    className="size-6 cursor-pointer appearance-none border-2 border-text-main bg-white checked:bg-primary checked:before:block checked:before:text-center checked:before:text-lg checked:before:font-bold checked:before:text-white checked:before:content-['✓']"
-                    onChange={() => toggleRegion(region)}
-                    type="checkbox"
-                  />
-                  <span className="text-lg group-hover:font-bold">{region}</span>
+                  <span className="text-lg group-hover:font-bold">
+                    {invitePolicy === 'Open' ? 'Open' : 'Invite Only'}
+                  </span>
                 </label>
               ))}
             </div>
@@ -173,31 +168,17 @@ function SearchPage() {
             </button>
           </div>
 
-          {(selectedSports.length > 0 || selectedRegions.length > 0) && (
+          {selectedInvitePolicies.length > 0 && (
             <div aria-label="Active filters" className="mt-4 flex flex-wrap gap-2">
-              {selectedSports.map((sport) => (
+              {selectedInvitePolicies.map((invitePolicy) => (
                 <button
-                  aria-label={`Remove ${sport} filter`}
+                  aria-label={`Remove ${invitePolicy === 'Open' ? 'Open' : 'Invite Only'} filter`}
                   className="flex items-center gap-2 border-2 border-text-main bg-primary px-3 py-1 text-sm font-bold text-white hover:bg-accent"
-                  key={sport}
-                  onClick={() => toggleSport(sport)}
+                  key={invitePolicy}
+                  onClick={() => toggleInvitePolicy(invitePolicy)}
                   type="button"
                 >
-                  {sport}
-                  <span aria-hidden="true" className="material-symbols-outlined text-base">
-                    close
-                  </span>
-                </button>
-              ))}
-              {selectedRegions.map((region) => (
-                <button
-                  aria-label={`Remove ${region} filter`}
-                  className="flex items-center gap-2 border-2 border-text-main bg-primary px-3 py-1 text-sm font-bold text-white hover:bg-accent"
-                  key={region}
-                  onClick={() => toggleRegion(region)}
-                  type="button"
-                >
-                  {region}
+                  {invitePolicy === 'Open' ? 'Open' : 'Invite Only'}
                   <span aria-hidden="true" className="material-symbols-outlined text-base">
                     close
                   </span>
@@ -209,11 +190,26 @@ function SearchPage() {
 
         <div className="mb-6">
           <h2 aria-live="polite" className="font-heading text-2xl font-bold">
-            Results ({filteredTeams.length})
+            Results ({isLoading || loadError ? 0 : filteredTeams.length})
           </h2>
         </div>
 
-        {filteredTeams.length > 0 ? (
+        {isLoading ? (
+          <p aria-live="polite" className="border-2 border-text-main bg-off-white p-8 text-center">
+            Loading teams...
+          </p>
+        ) : loadError ? (
+          <div className="border-2 border-text-main bg-off-white p-8 text-center">
+            <p className="font-bold" role="alert">{loadError}</p>
+            <button
+              className="mt-4 border-2 border-text-main bg-primary px-6 py-3 font-bold uppercase tracking-wider text-white shadow-hard transition-all hover:shadow-hard-hover"
+              onClick={() => setReloadCount((count) => count + 1)}
+              type="button"
+            >
+              Retry
+            </button>
+          </div>
+        ) : filteredTeams.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 pb-10 lg:grid-cols-2 xl:grid-cols-3">
             {filteredTeams.map((team) => (
               <article
@@ -222,25 +218,19 @@ function SearchPage() {
               >
                 <div>
                   <div className="mb-4 flex items-start justify-between gap-2">
-                    <span className="border-2 border-text-main bg-accent px-2 py-1 text-sm font-bold uppercase tracking-wider text-white">
-                      {team.sport}
-                    </span>
                     <span
-                      className={`flex items-center gap-1 font-bold ${team.open ? 'text-primary' : 'text-muted'}`}
+                      className={`flex items-center gap-1 font-bold ${team.invitePolicy === 'Open' ? 'text-primary' : 'text-muted'}`}
                     >
                       <span aria-hidden="true" className="material-symbols-outlined text-xl">
-                        {team.open ? 'person' : 'lock'}
+                        {team.invitePolicy === 'Open' ? 'person' : 'lock'}
                       </span>
-                      {team.open ? 'Open' : 'Invite Only'}
+                      {team.invitePolicy === 'Open' ? 'Open' : 'Invite Only'}
                     </span>
                   </div>
                   <h3 className="mb-2 font-heading text-2xl font-bold leading-tight">{team.name}</h3>
                   <div className="mb-6 space-y-2 border-t-2 border-dashed border-muted pt-4">
                     <p className="text-base">
-                      <strong>Captain:</strong> {team.captain}
-                    </p>
-                    <p className="text-base">
-                      <strong>Region:</strong> {team.region}
+                      <strong>Captain account:</strong> #{team.captainId}
                     </p>
                   </div>
                 </div>
@@ -260,5 +250,3 @@ function SearchPage() {
     </div>
   )
 }
-
-export default SearchPage

@@ -1,7 +1,8 @@
 import z, { number, string } from "zod";
 import { invitePolicies, regions, sports } from './types.ts';
 import { createInsertSchema } from 'drizzle-orm/zod';
-import { MatchesTable } from '../LLH_Server/src/db/schemas.ts';
+import { MatchesTable, TeamsTable } from '../LLH_Server/src/db/schemas.ts';
+import TeamsSection from "../LLH_UI/src/components/account/TeamsSection.tsx";
 
 export const joinTeamValidator = z.object({
   teamId: number().int().positive(),
@@ -17,7 +18,7 @@ export const updateAccountValidator = z.object({
   { message: "At least one account field must be provided" },
 );
 
-export const createTeamValidator = z.object({
+export const createTeamValidator = createInsertSchema(TeamsTable).extend({
   name: string().trim().min(1, "Team name is required").max(50),
   invitePolicy: z.enum(invitePolicies).default("Open"),
   sport: z.enum(sports)
