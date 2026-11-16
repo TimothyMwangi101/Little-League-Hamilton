@@ -1,16 +1,9 @@
 // tests/users.test.ts
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
-
-vi.mock("../src/db/db.ts", async () => {
-  // using test db insted of real one
-  const { db } = await import("./db_test.ts");
-  return { db };
-});
-
 import { eq } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
 import { UsersTable } from "../src/db/schemas.ts";
-import { db } from "./db_test.ts";
+import db from "./db_test.ts";
 import usersApp from "../src/routes/users.ts";
 
 beforeEach(async () => {

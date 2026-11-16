@@ -1,5 +1,5 @@
 import { AccountsTable, MatchesTable, TeamsTable } from "../db/schemas.ts";
-import { db } from "../db/db.ts";
+import db from "../db/db.ts";
 import { eq } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
@@ -31,7 +31,7 @@ const app = new Hono<UserPayloadEnv>()
         }
     }), async (ctx) => {
         const { id } = ctx.get("jwtPayload");
-        const { name, invitePolicy } = ctx.req.valid("json");
+        const { name, invitePolicy, sport } = ctx.req.valid("json");
 
         const [exist] = await db
             .select()
@@ -43,7 +43,7 @@ const app = new Hono<UserPayloadEnv>()
 
         const [team] = await db
             .insert(TeamsTable)
-            .values({ name, captainId: id, invitePolicy })
+            .values({ name, invitePolicy, sport, captainId: id })
             .returning();
 
         const [account] = await db

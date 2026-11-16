@@ -10,11 +10,12 @@ const REFRESH_WHEN_LEFT  = JWT_EXP_TIME * 0.50;      // 50% time left
 const AUTH_SECRET = process.env.AUTH_SECRET;
 
 if (!AUTH_SECRET)
-    throw new Error("auth secret not loaded from env");
+    throw new Error("auth secret not found");
 
 export type UserPayload = {
     exp: number,
     id: number,
+    email: string,
 };
 
 export type UserPayloadEnv = { 
@@ -24,14 +25,15 @@ export type UserPayloadEnv = {
 /** looks for the cookie named token */
 export const authenticate = jwt({ secret: AUTH_SECRET, alg: 'HS256', cookie: 'token' })
 
-export async function issueJWT(ctx: Context, userId: number) {
+export async function issueJWT(ctx: Context, user: { id: number, email: string }) {
     const payload: UserPayload = {
         exp: Math.floor(Date.now() / 1000) + JWT_EXP_TIME,   // exp in 10 mins 
-        id: userId,
+        id: user.id,
+        email: user.email
     }
-    const token = await sign(payload, AUTH_SECRET!, "HS256")
+    const token = sign(payload, AUTH_SECRET!, "HS256")
 
-    setCookie(ctx, "token", token, {
+    setCookie(ctx, "token", await token, {
         httpOnly: true,
         sameSite: "Strict",
         maxAge: JWT_EXP_TIME,      // 10 mins
@@ -41,11 +43,11 @@ export async function issueJWT(ctx: Context, userId: number) {
 }
 
 export const refreshJWT = createMiddleware<UserPayloadEnv>(async (ctx, next) => {
-    const { exp, id } = ctx.get("jwtPayload")
+    const { exp, ...user } = ctx.get("jwtPayload")
     const secondsLeft = exp - Math.floor(Date.now() / 1000)
 
     if (secondsLeft < REFRESH_WHEN_LEFT)  // When its 75% expired
-        await issueJWT(ctx, id)
+        await issueJWT(ctx, user)
 
     await next()
 })

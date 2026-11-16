@@ -6,7 +6,7 @@ import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
 import type { ApplyGlobalResponse } from 'hono/client'
 import { HTTPException } from 'hono/http-exception';
-import { db } from './db/db.ts';
+import db from './db/db.ts';
 import { MatchesTable, TeamsTable } from './db/schemas.ts';
 
 const app = new Hono()

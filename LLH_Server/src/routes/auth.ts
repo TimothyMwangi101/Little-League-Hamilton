@@ -3,7 +3,7 @@ import { sValidator } from "@hono/standard-validator";
 import { hashPassword, comparePasswords } from "../lib/crypto.ts"
 import { Hono } from 'hono'
 import { createUserValidator, loginValidator, resetPasswordValidator, UsersTable } from "../db/schemas.ts"
-import { db } from "../db/db.ts"
+import db from "../db/db.ts"
 import { eq } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
 import { deleteJWT, issueJWT } from "../middleware/auth.ts";
@@ -84,7 +84,7 @@ const app = new Hono()
             if (!valid)
                 return ctx.json({ error: "Invalid email or password" }, StatusCodes.UNAUTHORIZED);
 
-            await issueJWT(ctx, user.id);
+            await issueJWT(ctx, { id: user.id, email });
 
         
 

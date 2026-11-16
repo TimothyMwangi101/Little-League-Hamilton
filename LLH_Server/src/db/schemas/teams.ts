@@ -13,5 +13,3 @@ export const TeamsTable = sqliteTable("teams", {
   createdAt: text().default(sql`(CURRENT_DATE)`).notNull(),
 });
 
-export type Team = typeof TeamsTable.$inferSelect;
-export type SafeTeam = Omit<typeof TeamsTable.$inferSelect, "id" | "createdAt">;

@@ -4,7 +4,6 @@ import { UsersTable } from "./users.ts";
 import { TeamsTable } from "./teams.ts";
 import { regions, type Sport } from '../../../../LLH_Shared/types.ts';
 
-
 export const AccountsTable = sqliteTable("accounts", {
   userId: integer({ mode: "number" }).notNull()
     .references(() => UsersTable.id, { onDelete: "cascade" }),
@@ -19,6 +18,3 @@ export const AccountsTable = sqliteTable("accounts", {
   team: integer({ mode: "number" }).references(() => TeamsTable.id).default(sql`NULL`),
   createdAt: text().default(sql`(CURRENT_DATE)`).notNull(),
 });
-
-export type Account = typeof AccountsTable.$inferSelect;
-export type SafeAccount = Omit<typeof AccountsTable.$inferSelect, "userId">;

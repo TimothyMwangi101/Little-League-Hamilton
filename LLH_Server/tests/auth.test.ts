@@ -1,13 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-
-vi.mock("../src/db/db.ts", async () => {
-  const { db } = await import("./db_test.ts");
-  return { db };
-});
-
 import { AccountsTable, TeamsTable, UsersTable } from "../src/db/schemas.ts";
-import { db } from "./db_test.ts";
-
+import db from "./db_test.ts";
 import authApp from "../src/routes/auth.ts";
 import accountApp from "../src/routes/accounts.ts";
 
