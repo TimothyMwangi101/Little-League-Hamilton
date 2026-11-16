@@ -1,7 +1,7 @@
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from 'hono'
 import { AccountsTable, TeamsTable, UsersTable } from "../db/schemas.ts"
-import { db } from "../db/db.ts"
+import db from "../db/db.ts"
 import { and, eq, isNull } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
 import { refreshJWT, authenticate, type UserPayloadEnv } from "../middleware/auth.ts";

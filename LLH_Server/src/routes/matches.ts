@@ -1,0 +1,80 @@
+import { AccountsTable, MatchesTable, TeamsTable } from "../db/schemas.ts";
+import db from "../db/db.ts";
+import { eq } from 'drizzle-orm';
+import { StatusCodes } from 'http-status-codes';
+import { Hono } from "hono";
+import { sValidator } from "@hono/standard-validator";
+import { authenticate, refreshJWT, type UserPayloadEnv } from "../middleware/auth.ts";
+import { createTeamValidator } from "../../../LLH_Shared/validators.ts";
+
+const app = new Hono<UserPayloadEnv>()
+    .use(authenticate, refreshJWT)
+    .get("/", async (ctx) => {
+        const { id } = ctx.get('jwtPayload') ?? undefined;
+
+        if (!id)
+            return ctx.json({ error: "Not authenticated" }, StatusCodes.UNAUTHORIZED);
+
+        const [team] = await db.select()
+            .from(TeamsTable)
+            .where(eq(TeamsTable.id, id));
+
+        if (!team) 
+            return ctx.json({ error: "Teamt not found" }, StatusCodes.NOT_FOUND);
+        
+        return ctx.json({ data: team }, StatusCodes.OK);
+    })
+    .post("/create", sValidator("json", createTeamValidator, (result, ctx) => {
+        if (!result.success) {
+            console.error(result.error)
+            return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
+        }
+    }), async (ctx) => {
+        const { id } = ctx.get("jwtPayload");
+        const { name, invitePolicy, sport } = ctx.req.valid("json");
+
+        const [exist] = await db
+            .select()
+            .from(TeamsTable)
+            .where(eq(TeamsTable.name, name));
+
+        if (exist)
+            return ctx.json({ error: "Team already exists" }, StatusCodes.CONFLICT);
+
+        const [team] = await db
+            .insert(TeamsTable)
+            .values({ name, invitePolicy, sport, captainId: id })
+            .returning();
+
+        const [account] = await db
+            .update(AccountsTable)
+            .set({ team: team.id })
+            .where(eq(AccountsTable.userId, id))
+            .returning({ userId: AccountsTable.userId });
+
+        if (!account)
+            return ctx.json({ error: "Account not found" }, StatusCodes.NOT_FOUND);
+
+        return ctx.json({ data: team }, StatusCodes.CREATED);
+    }).delete("/", async (ctx) => {
+        const { id } = ctx.get('jwtPayload') ?? undefined;
+
+        if (!id)
+            return ctx.json({ error: "Not authenticated" }, StatusCodes.UNAUTHORIZED);
+
+        const [team] = await db
+            .select()
+            .from(TeamsTable)
+            .where(eq(TeamsTable.captainId, id))
+
+        if (!team)
+            return ctx.json({ error: "Only captain can delete teams" }, StatusCodes.UNAUTHORIZED);
+
+        await db
+            .delete(TeamsTable)
+            .where(eq(TeamsTable.id, team.id));
+
+        return ctx.json({ data: "Deleted team" }, StatusCodes.OK);
+    });
+
+export default app;

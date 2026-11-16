@@ -6,6 +6,8 @@ import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
 import type { ApplyGlobalResponse } from 'hono/client'
 import { HTTPException } from 'hono/http-exception';
+import db from './db/db.ts';
+import { MatchesTable, TeamsTable } from './db/schemas.ts';
 
 const app = new Hono()
   .route('/user', userRoutes)
@@ -23,7 +25,13 @@ const app = new Hono()
     return ctx.json({ error: "Not found" }, StatusCodes.NOT_FOUND);
   }).get('/', (ctx) => {
     return ctx.json({ data: "Hello Hono!" }, StatusCodes.OK);
-});
+  }).get("/teams", async (ctx) => {
+    const teams = await db.select().from(TeamsTable);
+    return ctx.json({ data: teams }, StatusCodes.OK);
+  }).get("/matches", async (ctx) => {
+    const matches = await db.select().from(MatchesTable);
+    return ctx.json({ data: matches }, StatusCodes.OK);
+  });
 
 
 export type AppType = ApplyGlobalResponse<typeof app, {

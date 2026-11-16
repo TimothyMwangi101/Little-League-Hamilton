@@ -1,5 +1,5 @@
 import { AccountsTable, TeamsTable } from "../db/schemas.ts";
-import { db } from "../db/db.ts";
+import db from "../db/db.ts";
 import { eq } from 'drizzle-orm';
 import { StatusCodes } from 'http-status-codes';
 import { Hono } from "hono";
@@ -10,21 +10,14 @@ import { createTeamValidator } from "../../../LLH_Shared/validators.ts";
 const app = new Hono<UserPayloadEnv>()
     .use(authenticate, refreshJWT)
     .get("/", async (ctx) => {
-        const teams = await db.select().from(TeamsTable);
-        return ctx.json({ data: teams }, StatusCodes.OK);
-    })
-    .get("/", async (ctx) => {
-        const { id } = ctx.get('jwtPayload') ?? undefined;
-
-        if (!id)
-            return ctx.json({ error: "Not authenticated" }, StatusCodes.UNAUTHORIZED);
+        const { id } = ctx.get('jwtPayload');
 
         const [team] = await db.select()
             .from(TeamsTable)
             .where(eq(TeamsTable.id, id));
 
         if (!team) 
-            return ctx.json({ error: "Teamt not found" }, StatusCodes.NOT_FOUND);
+            return ctx.json({ error: "Team not found" }, StatusCodes.NOT_FOUND);
         
         return ctx.json({ data: team }, StatusCodes.OK);
     })
@@ -35,7 +28,7 @@ const app = new Hono<UserPayloadEnv>()
         }
     }), async (ctx) => {
         const { id } = ctx.get("jwtPayload");
-        const { name, invitePolicy } = ctx.req.valid("json");
+        const { name, invitePolicy, sport } = ctx.req.valid("json");
 
         const [exist] = await db
             .select()
@@ -43,28 +36,25 @@ const app = new Hono<UserPayloadEnv>()
             .where(eq(TeamsTable.name, name));
 
         if (exist)
-            return ctx.json({ error: "Team already exists" }, StatusCodes.CONFLICT);
+            return ctx.json({ error: "Team already exists, please use another name" }, StatusCodes.CONFLICT);
 
         const [team] = await db
             .insert(TeamsTable)
-            .values({ name, captainId: id, invitePolicy })
+            .values({ name, captainId: id, sport, invitePolicy })
             .returning();
 
         const [account] = await db
             .update(AccountsTable)
             .set({ team: team.id })
-            .where(eq(AccountsTable.userId, id))
-            .returning({ userId: AccountsTable.userId });
+                .where(eq(AccountsTable.userId, id))
+                .returning({ userId: AccountsTable.userId });
 
         if (!account)
             return ctx.json({ error: "Account not found" }, StatusCodes.NOT_FOUND);
 
         return ctx.json({ data: team }, StatusCodes.CREATED);
     }).delete("/", async (ctx) => {
-        const { id } = ctx.get('jwtPayload') ?? undefined;
-
-        if (!id)
-            return ctx.json({ error: "Not authenticated" }, StatusCodes.UNAUTHORIZED);
+        const { id } = ctx.get('jwtPayload');
 
         const [team] = await db
             .select()

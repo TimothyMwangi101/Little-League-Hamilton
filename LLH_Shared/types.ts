@@ -1,8 +1,18 @@
+import type z from "zod"
+import type { AccountsTable, MatchesTable, TeamsTable } from "../LLH_Server/src/db/schemas.ts"
+import type { createTeamValidator } from "./validators.ts"
 
 export const regions = ["Hamilton Mountain", "Lower Hamilton"] as const
 export const sports = ["Basketball", "Baseball", "Football", "Soccer", "Bocce", "Tennis"] as const
+export const matchStatus = ["Accepted", "Rejected", "Pending"] as const
+export const invitePolicies = ["Open", "InviteOnly"] as const
+
+
 export type Region = (typeof regions)[number]
 export type Sport = (typeof sports)[number]
-
-export const invitePolicies = ["Open", "InviteOnly"] as const
 export type InvitePolicy = (typeof invitePolicies)[number]
+export type MatchStatus = (typeof matchStatus)[number]
+export type Team = typeof TeamsTable.$inferSelect;
+export type Match = typeof MatchesTable.$inferSelect;
+export type Account = typeof AccountsTable.$inferSelect;
+export type CreateTeam = z.infer<typeof createTeamValidator>;

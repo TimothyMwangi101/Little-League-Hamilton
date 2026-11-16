@@ -1,4 +1,5 @@
-import type { Account, AccountUpdates, CreateTeamRequest } from "./AccountPage"
+import type { Account, AccountUpdates } from "./AccountPage"
+import type { Team } from "@shared/types"
 import ProfileSection from "./ProfileSection"
 import SportsSection from "./SportsSection"
 import StatsSection from "./StatsSection"
@@ -10,9 +11,7 @@ type AccountViewProps = {
     isSaving: boolean
     onSave: (updates: AccountUpdates) => Promise<boolean>
     saveError: string
-    onCreateTeam: (team: CreateTeamRequest) => Promise<boolean>
-    isCreatingTeam: boolean
-    createTeamError: string
+    onTeamCreated: (team: Team) => void
 }
 
 export default function AccountView({
@@ -21,9 +20,7 @@ export default function AccountView({
     isSaving,
     onSave,
     saveError,
-    onCreateTeam,
-    isCreatingTeam,
-    createTeamError,
+    onTeamCreated,
 }: AccountViewProps) {
     return (
         <main className="mx-auto w-full max-w-[1600px] p-4 sm:p-8">
@@ -39,9 +36,7 @@ export default function AccountView({
                 <SportsSection account={account} isSaving={isSaving} onSave={onSave} />
                 <TeamsSection
                     account={account}
-                    onCreateTeam={onCreateTeam}
-                    isCreatingTeam={isCreatingTeam}
-                    createTeamError={createTeamError}
+                    onTeamCreated={onTeamCreated}
                 />
             </div>
         </main>

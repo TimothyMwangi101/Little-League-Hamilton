@@ -1,8 +1,6 @@
 import "dotenv/config";
 import { serve } from '@hono/node-server';
 import app from "./app.ts";
-import { migrate } from 'drizzle-orm/node-sqlite/migrator';
-import { db } from './db/db.ts';
 import { Hono } from 'hono';
 import { StatusCodes } from 'http-status-codes';
 import { serveStatic } from '@hono/node-server/serve-static';
@@ -14,10 +12,6 @@ if (Number.isNaN(port))
 
 // serveStatic roots are relative to the working directory (LLH_Server when started via npm)
 const UI_DIST = process.env.UI_DIST ?? '../LLH_UI/dist';
-migrate(db, {
-  migrationsFolder: "./src/db/migrations",
-  migrationsSchema: "./src/db/schemas.ts",
-});
 
 const server = new Hono()
   .route('/api', app)

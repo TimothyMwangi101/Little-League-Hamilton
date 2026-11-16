@@ -4,10 +4,11 @@ import AccountView from './Account.tsx'
 import type { InferRequestType, InferResponseType } from "hono/client";
 import { StatusCodes } from "http-status-codes";
 import client from "../../client";
+import type { Team } from '@shared/types';
 
 export type Account = InferResponseType<typeof client.account.$get, StatusCodes.OK>["data"];
 export type AccountUpdates = InferRequestType<typeof client.account.$patch>["json"];
-export type CreateTeamRequest = InferRequestType<typeof client.team.create.$post>["json"];
+
 
 export default function AccountPage() {
   const navigate = useNavigate()
@@ -15,8 +16,6 @@ export default function AccountPage() {
   const [error, setError] = useState<string>("")
   const [updateError, setUpdateError] = useState("")
   const [isSaving, setIsSaving] = useState(false)
-  const [createTeamError, setCreateTeamError] = useState("")
-  const [isCreatingTeam, setIsCreatingTeam] = useState(false)
 
   useEffect(() => {
     let isCurrent = true
@@ -53,36 +52,16 @@ export default function AccountPage() {
     }
   }, [navigate])
 
-  async function createTeam(team: CreateTeamRequest) {
-    setIsCreatingTeam(true)
-    setCreateTeamError("")
-
-    try {
-      const response = await client.team.create.$post({ json: team })
-      const result = await response.json()
-
-      if ('error' in result) {
-        setCreateTeamError(String(result.error))
-        return false
-      }
-
-      setAccount((currentAccount) => currentAccount
-        ? {
-            ...currentAccount,
-            AccountsTable: {
-              ...currentAccount.AccountsTable,
-              team: result.data.id,
-            },
-          }
-        : currentAccount)
-      return true
-    } catch (err) {
-      console.error(err)
-      setCreateTeamError('Unable to create your team. Please try again.')
-      return false
-    } finally {
-      setIsCreatingTeam(false)
-    }
+  function handleTeamCreated(team: Team) {
+    setAccount((currentAccount) => currentAccount
+      ? {
+          ...currentAccount,
+          AccountsTable: {
+            ...currentAccount.AccountsTable,
+            team: team.id,
+          },
+        }
+      : currentAccount)
   }
 
   async function saveAccount(updates: AccountUpdates) {
@@ -132,9 +111,7 @@ export default function AccountPage() {
       isSaving={isSaving}
       onSave={saveAccount}
       saveError={updateError}
-      onCreateTeam={createTeam}
-      isCreatingTeam={isCreatingTeam}
-      createTeamError={createTeamError}
+      onTeamCreated={handleTeamCreated}
     />
   )
 }
