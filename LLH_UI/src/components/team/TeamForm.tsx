@@ -1,21 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
-import * as z from "zod"
 import { createTeamValidator } from "@shared/validators"
-import { sports, type Sport } from "@shared/types"
+import { invitePolicies, sports, type CreateTeam, type Sport, type Team } from "@shared/types"
+import Button from "../shared/Button";
 import client from "../../client"
-import Button from "../shared/Button"
-import type { InferRequestType } from "hono/client"
-
-export type Team = InferRequestType<typeof client.team.create.$post>["json"]
-type CreateTeamFormValues = z.input<typeof createTeamValidator>
 
 type TeamFormProps = {
     onClose: () => void
-    onCreateTeam: (team: Team) => Promise<boolean>
-    isCreatingTeam: boolean
-    createTeamError: string
+    onTeamCreated: (team: Team) => void
 }
 
 const sportIcons: Record<Sport, string> = {
@@ -27,30 +20,42 @@ const sportIcons: Record<Sport, string> = {
     Tennis: "sports_tennis",
 }
 
-export default function CreateTeam({ onClose, onCreateTeam, isCreatingTeam, createTeamError }: TeamFormProps) {
+export default function CreateTeam({ onClose, onTeamCreated }: TeamFormProps) {
     const dialogRef = useRef<HTMLDialogElement>(null)
+    const [createTeamError, setCreateTeamError] = useState("")
     const { clearErrors, formState: { errors, isSubmitting },
-        handleSubmit, register } = useForm<CreateTeamFormValues>({
+        handleSubmit, register } = useForm({
             resolver: zodResolver(createTeamValidator),
             defaultValues: { name: "", invitePolicy: "Open" },
-        })
+        });
 
     useEffect(() => {
         const dialog = dialogRef.current
         if (!dialog) return
 
         dialog.showModal()
-        // return () => {
-        //     if (dialog.open) dialog.close()
-        // }
     }, [])
 
-    async function createTeam(values: CreateTeamFormValues) {
+    async function createTeam(values: CreateTeam) {
         clearErrors()
-        if (await onCreateTeam(values)) onClose()
-    }
+        setCreateTeamError("")
 
-    const hasValidationErrors = Boolean(errors.name || errors.sport)
+        try {
+            const response = await client.team.create.$post({ json: values })
+            const result = await response.json()
+
+            if ("error" in result) {
+                setCreateTeamError(String(result.error))
+                return
+            }
+
+            onTeamCreated(result.data)
+            onClose()
+        } catch (error) {
+            console.error(error)
+            setCreateTeamError("Unable to create your team. Please try again.")
+        }
+    }
 
     return (
         <dialog
@@ -79,28 +84,6 @@ export default function CreateTeam({ onClose, onCreateTeam, isCreatingTeam, crea
                     <p className="mb-6 border-2 border-accent bg-surface p-4 font-bold text-accent" role="alert">
                         {createTeamError}
                     </p>
-                )}
-
-                {hasValidationErrors && (
-                    <div aria-live="assertive" className="mb-8 border-2 border-accent bg-surface p-5 text-accent shadow-hard" role="alert">
-                        <p className="text-lg font-bold">Please fix the following:</p>
-                        <ul className="mt-2 list-disc pl-6">
-                            {errors.sport && (
-                                <li>
-                                    <a className="underline underline-offset-2" href="#sport-selection">
-                                        {errors.sport.message}
-                                    </a>
-                                </li>
-                            )}
-                            {errors.name && (
-                                <li>
-                                    <a className="underline underline-offset-2" href="#team-name">
-                                        {errors.name.message}
-                                    </a>
-                                </li>
-                            )}
-                        </ul>
-                    </div>
                 )}
 
                 <form className="flex flex-col gap-12" noValidate onSubmit={handleSubmit(createTeam)}>
@@ -165,13 +148,30 @@ export default function CreateTeam({ onClose, onCreateTeam, isCreatingTeam, crea
                         </div>
                     </section>
 
+                    <section className="flex flex-col gap-2">
+                        <label className="text-lg font-bold text-text-main" htmlFor="invitation-policy">
+                            Invitation Policy
+                        </label>
+                        <select
+                            className="w-full border-2 border-text-main bg-surface p-4 text-lg text-text-main focus:border-primary focus:outline-none"
+                            id="invitation-policy"
+                            {...register("invitePolicy")}
+                        >
+                            {invitePolicies.map((invitePolicy) => (
+                                <option key={invitePolicy} value={invitePolicy}>
+                                    {invitePolicy === "Open" ? "Open" : "Invite Only"}
+                                </option>
+                            ))}
+                        </select>
+                    </section>
+
                     <div className="flex flex-col-reverse gap-3 border-t-2 border-text-main/20 pt-6 sm:flex-row sm:justify-end">
                         <Button onClick={onClose} type="button" variant="action">
                             Cancel
                         </Button>
-                        <Button className="py-3 text-base" disabled={isSubmitting || isCreatingTeam} type="submit" variant="primary">
+                        <Button className="py-3 text-base" disabled={isSubmitting} type="submit" variant="primary">
                             <span aria-hidden="true" className="material-symbols-outlined mr-1 align-middle text-base">group_add</span>
-                            {isSubmitting || isCreatingTeam ? "Creating..." : "Create Team"}
+                            {isSubmitting ? "Creating..." : "Create Team"}
                         </Button>
                     </div>
                 </form>
