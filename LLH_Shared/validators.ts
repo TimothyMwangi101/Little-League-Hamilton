@@ -28,7 +28,7 @@ export const createTeamValidator = createInsertSchema(TeamsTable)
   .extend({
     name: string().trim().min(3, "Team name is required with a name of atleast 3 characters long").max(50),
     invitePolicy: z.enum(invitePolicies).default("Open"),
-    sport: z.enum(sports, { error: "You must select a sport"}) satisfies z.ZodType<Sport>,
+    sport: z.enum(sports, { error: "You must select a sport" }).check() satisfies z.ZodType<Sport>,
   });
 
 export const createMatchValidator = createInsertSchema(MatchesTable)
@@ -39,7 +39,7 @@ export const createMatchValidator = createInsertSchema(MatchesTable)
     challengerId: true,
   })
   .extend({
-    sport: z.enum(sports, { error: "You must select a sport"}) satisfies z.ZodType<Sport>,
+    sport: z.enum(sports, { error: "You must select a sport" }) satisfies z.ZodType<Sport>,
     matchDate: z.union([
       z.date(),
       z.iso.datetime().pipe(z.coerce.date()),
@@ -50,11 +50,21 @@ export const createMatchValidator = createInsertSchema(MatchesTable)
       .transform((date) => date.toISOString()),
   });
 
-export const userQuery = createSelectSchema(UsersTable)
+export const userQuery = createSelectSchema(UsersTable, {
+  id: z.number().nullable(),
+  email: z.email().nullable(),
+})
   .pick({ email: true, id: true })
-  .extend({
-    id: z.number().nullable(),
-    email: z.email().nullable(),
-  })
-// export const useridQuery = createSelectSchema(UsersTable)
-// .pick({ id: true })
+
+
+const authCredentialsValidator = z.strictObject({
+  email: z.email("Please enter a valid email address").trim().toLowerCase(),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(30, "Password cannot exceed 30 characters"),
+});
+
+export const createUserValidator = authCredentialsValidator;
+export const resetPasswordValidator = authCredentialsValidator;
+export const loginValidator = authCredentialsValidator;

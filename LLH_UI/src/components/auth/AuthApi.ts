@@ -5,9 +5,9 @@ import type { StatusCodes } from "http-status-codes";
 const auth = client.auth;
 export type RegisterValues = InferRequestType<typeof auth.register.$post>["json"];
 export type LoginValues = InferRequestType<typeof auth.login.$post>["json"];
-export type ResetPasswordValues = InferRequestType<typeof auth.reset_password.$post>["json"];
+export type ResetPasswordValues = InferRequestType<typeof auth.resetPassword.$patch>["json"];
 export type Account = InferResponseType<typeof auth.login.$post, StatusCodes.OK>["data"];
-export type Endpoint = "login" | "register" | "reset_password";
+export type Endpoint = "login" | "register" | "resetPassword";
 
 export async function register(values: RegisterValues) {
   const res = await auth.register.$post({ json: values });
@@ -20,7 +20,7 @@ export async function login(values: LoginValues) {
 }
 
 export async function resetPassword(values: ResetPasswordValues) {
-  const res = await auth.reset_password.$post({ json: values });
+  const res = await auth.resetPassword.$patch({ json: values });
   return res.json();
 }
 

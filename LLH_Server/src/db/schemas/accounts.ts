@@ -6,7 +6,7 @@ import { regions, type Sport } from '../../../../LLH_Shared/types.ts';
 
 export const AccountsTable = sqliteTable("accounts", {
   userId: integer({ mode: "number" }).notNull()
-    .references(() => UsersTable.id, { onDelete: "cascade" }),
+    .references(() => UsersTable.id, { onDelete: "cascade" }).primaryKey(),
   firstName: text().default(sql`NULL`),
   lastName: text().default(sql`NULL`),
   region: text({ enum: regions }).default(sql`NULL`),

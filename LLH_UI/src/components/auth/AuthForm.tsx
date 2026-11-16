@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router'
+import { loginValidator } from '@shared/validators'
+import type { LoginCredentials } from '@shared/types'
 import * as AuthApi from './AuthApi';
-
-type AuthFormValues = { email: string; password?: string; newPassword?: string }
 
 type AuthFormProps = {
   isRegistering: boolean
@@ -16,12 +17,13 @@ export default function AuthForm({ isRegistering, onModeChange }: AuthFormProps)
   const [message, setMessage] = useState('');
   const [isForgotPassword, setForgotPassword] = useState(false);
   const { clearErrors, formState: { errors, isSubmitting }, handleSubmit,
-    getValues, register, reset, setError } = useForm<AuthFormValues>({
-      defaultValues: { email: '', password: '', newPassword: '' },
+    getValues, register, reset, setError } = useForm<LoginCredentials>({
+      resolver: zodResolver(loginValidator),
+      defaultValues: { email: '', password: '' },
       shouldUnregister: true,
     })
 
-  async function submit(values: AuthFormValues) {
+  async function submit(values: LoginCredentials) {
     setMessage('')
     clearErrors()
     const fail = (message: string) => setError('root.serverError', { message })
@@ -30,7 +32,7 @@ export default function AuthForm({ isRegistering, onModeChange }: AuthFormProps)
       if (isForgotPassword) {
         const result = await AuthApi.resetPassword({
           email: values.email,
-          newPassword: values.newPassword ?? '',
+          password: values.password,
         })
         if ('error' in result) {
           fail(result.error)
@@ -43,7 +45,7 @@ export default function AuthForm({ isRegistering, onModeChange }: AuthFormProps)
         return
       }
 
-      const credentials = { email: values.email, password: values.password ?? '' }
+      const credentials = { email: values.email, password: values.password }
 
       if (isRegistering) {
         const result = await AuthApi.register(credentials)
@@ -162,17 +164,17 @@ export default function AuthForm({ isRegistering, onModeChange }: AuthFormProps)
 
         {isForgotPassword && (
           <div className="flex flex-col gap-2">
-            <label htmlFor="newPassword" className="text-[18px] font-bold leading-normal text-text-main">
+            <label htmlFor="password" className="text-[18px] font-bold leading-normal text-text-main">
               New password
             </label>
-            <input autoComplete="new-password" id="newPassword" placeholder="Enter a new password" type="password"
-              {...register('newPassword', { required: 'New password is required.' })}
-              aria-invalid={Boolean(errors.newPassword)}
-              aria-describedby={errors.newPassword ? 'new-password-error' : undefined}
+            <input autoComplete="new-password" id="password" placeholder="Enter a new password" type="password"
+              {...register('password')}
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? 'password-error' : undefined}
               className={inputClasses} />
-            {errors.newPassword && (
-              <p id="new-password-error" role="alert" className="text-[14px] font-bold text-accent">
-                {errors.newPassword.message}
+            {errors.password && (
+              <p id="password-error" role="alert" className="text-[14px] font-bold text-accent">
+                {errors.password.message}
               </p>
             )}
           </div>

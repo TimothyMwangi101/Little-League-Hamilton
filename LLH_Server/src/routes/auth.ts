@@ -1,22 +1,14 @@
-import "dotenv/config"
 import { sValidator } from "@hono/standard-validator";
 import { hashPassword, comparePasswords } from "../lib/crypto.ts"
 import { Hono } from 'hono'
-import { createUserValidator, loginValidator, resetPasswordValidator, UsersTable } from "../db/schemas.ts"
+import { UsersTable } from "../db/schemas.ts"
 import db from "../db/db.ts"
 import { eq } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
 import { deleteJWT, issueJWT } from "../middleware/auth.ts";
 import { createAccount, getAccount } from "./accounts.ts";
+import { createUserValidator, loginValidator, resetPasswordValidator } from "../../../LLH_Shared/validators.ts";
 
-const AUTH_SECRET = process.env.AUTH_SECRET;
-// const SERVER_URL = process.env.SERVER_URL;
-
-// if (!SERVER_URL)
-//     throw new Error("server url not in env")
-
-if (!AUTH_SECRET)
-    throw new Error("auth secret not loaded from env");
 
 /**
  * Responsible for creating a new user and logs them in after account creation.
@@ -86,8 +78,6 @@ const app = new Hono()
 
             await issueJWT(ctx, { id: user.id, email });
 
-        
-
             const account = await getAccount(user.id);
 
             return ctx.json({ data: account }, StatusCodes.OK);
@@ -97,13 +87,13 @@ const app = new Hono()
             return ctx.json({ error: "Could not validate user" }, StatusCodes.INTERNAL_SERVER_ERROR);
         }
     })
-    .post("/reset_password", sValidator("json", resetPasswordValidator, (result, ctx) => {
+    .patch("/resetPassword", sValidator("json", resetPasswordValidator, (result, ctx) => {
         if (!result.success) {
             console.error(result.error)
             return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
         }
     }), async (ctx) => {
-        let { email, newPassword } = ctx.req.valid("json");
+        let { email, password } = ctx.req.valid("json");
 
         if (!email) {
             console.error("Email was undefined")
@@ -118,7 +108,7 @@ const app = new Hono()
         if (!user)
             return ctx.json({ error: "Invalid email or password" }, StatusCodes.UNAUTHORIZED);
 
-        const { salt, hashedPassword } = await hashPassword(newPassword);
+        const { salt, hashedPassword } = await hashPassword(password);
 
         const [updatedUser] = await db.update(UsersTable)
             .set({ password: hashedPassword, salt: salt })
