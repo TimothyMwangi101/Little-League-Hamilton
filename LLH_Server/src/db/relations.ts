@@ -20,6 +20,10 @@ export const relations = defineRelations(schema, r => ({
             from: r.AccountsTable.userId.through(r.TeamMembersTable.userId),
             to: r.TeamsTable.id.through(r.TeamMembersTable.teamId)
         }),
+        memberships: r.many.TeamMembersTable({ 
+            from: r.AccountsTable.userId, 
+            to: r.TeamMembersTable.userId 
+        }),
     },
     TeamsTable: {
         accounts: r.many.AccountsTable({
@@ -36,6 +40,10 @@ export const relations = defineRelations(schema, r => ({
             to: r.MatchesTable.opponentId,
             alias: "opponent"
         }),
+        members: r.many.TeamMembersTable({
+            from: r.TeamsTable.id,
+            to: r.TeamMembersTable.teamId
+        }),
     },
     MatchesTable: {
         challenger: r.one.TeamsTable({
@@ -47,6 +55,16 @@ export const relations = defineRelations(schema, r => ({
             from: r.MatchesTable.opponentId,
             to: r.TeamsTable.id,
             alias: "opponent"
+        }),
+    },
+    TeamMembersTable: {
+        team: r.one.TeamsTable({ 
+            from: r.TeamMembersTable.teamId, 
+            to: r.TeamsTable.id 
+        }),
+        account: r.one.AccountsTable({ 
+            from: r.TeamMembersTable.userId, 
+            to: r.AccountsTable.userId 
         }),
     }
 }));

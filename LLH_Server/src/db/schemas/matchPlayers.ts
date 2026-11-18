@@ -5,16 +5,16 @@ import { TeamsTable } from "./teams.ts";
 import { UsersTable } from "./users.ts";
 
 export const MatchPlayersTable = sqliteTable("match_players", {
-  matchId: integer({ mode: "number" }).notNull()
+  matchId: integer().notNull()
     .references(() => MatchesTable.id, { onDelete: "cascade" }),
-  userId: integer({ mode: "number" }).notNull()
+  userId: integer().notNull()
     .references(() => UsersTable.id, { onDelete: "cascade" }),
-  teamId: integer({ mode: "number" }).notNull()
-    .references(() => TeamsTable.id), // which side they played for
-  goals: integer({ mode: "number" }).default(0).notNull(),
-  assists: integer({ mode: "number" }).default(0).notNull(),
+  teamId: integer().notNull()
+    .references(() => TeamsTable.id), 
+  goals: integer().default(0).notNull(),
+  assists: integer().default(0).notNull(),
 }, (t) => [
-  primaryKey({ columns: [t.matchId, t.userId] }), // one side per player per match
+  primaryKey({ columns: [t.matchId, t.userId] }),
   index("match_players_user_idx").on(t.userId),
   check("match_players_non_negative", sql`${t.goals} >= 0 AND ${t.assists} >= 0`),
 ]);
