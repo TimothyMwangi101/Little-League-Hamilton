@@ -12,15 +12,19 @@ export const relations = defineRelations(schema, r => ({
         }),     // one to one
     },
     AccountsTable: {
-        teamDetails: r.one.TeamsTable({
-            from: r.AccountsTable.team,
-            to: r.TeamsTable.id
+        user: r.one.UsersTable({
+            from: r.AccountsTable.userId,
+            to: r.UsersTable.id
+        }),
+        teams: r.many.TeamsTable({
+            from: r.AccountsTable.userId.through(r.TeamMembersTable.userId),
+            to: r.TeamsTable.id.through(r.TeamMembersTable.teamId)
         }),
     },
     TeamsTable: {
         accounts: r.many.AccountsTable({
-            from: r.TeamsTable.id,
-            to: r.AccountsTable.team
+            from: r.TeamsTable.id.through(r.TeamMembersTable.teamId),
+            to: r.AccountsTable.userId.through(r.TeamMembersTable.userId)
         }),
         challengedMatches: r.many.MatchesTable({
             from: r.TeamsTable.id,
