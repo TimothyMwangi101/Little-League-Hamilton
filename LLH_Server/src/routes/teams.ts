@@ -2,7 +2,7 @@ import { sValidator } from "@hono/standard-validator";
 import { Hono } from "hono";
 import { and, eq, inArray, notExists, or, sql } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
-import { MatchesTable, TeamMembersTable, TeamRecordsView, TeamsTable, UsersTable } from "../db/schemas.ts";
+import { AccountsTable, MatchesTable, TeamMembersTable, TeamRecordsView, TeamsTable, UsersTable } from "../db/schemas.ts";
 import db from "../db/db.ts";
 import { authenticate, refreshJWT, type UserPayloadEnv } from "../middleware/auth.ts";
 import { createTeamValidator, promoteCoCaptainParamsValidator, respondToMatchValidator, scheduleMatchValidator, teamIdValidator, teamMatchIdValidator } from "../../../LLH_Shared/validators.ts";
@@ -28,6 +28,40 @@ const app = new Hono<UserPayloadEnv>()
             .where(eq(TeamMembersTable.userId, userId));
 
         return ctx.json({ data: teams }, StatusCodes.OK);
+    })
+    .get("/:teamId/members", sValidator("param", teamIdValidator, (result, ctx) => {
+        if (!result.success) {
+            console.error(result.error);
+            return ctx.json({ error: "Invalid team id" }, StatusCodes.BAD_REQUEST);
+        }
+    }), async (ctx) => {
+        const { id: userId } = ctx.get("jwtPayload");
+        const { teamId } = ctx.req.valid("param");
+        const [membership] = await db
+            .select({ userId: TeamMembersTable.userId })
+            .from(TeamMembersTable)
+            .where(and(
+                eq(TeamMembersTable.teamId, teamId),
+                eq(TeamMembersTable.userId, userId),
+            ));
+
+        if (!membership)
+            return ctx.json({ error: "Team membership required" }, StatusCodes.FORBIDDEN);
+
+        const members = await db
+            .select({
+                userId: TeamMembersTable.userId,
+                firstName: AccountsTable.firstName,
+                lastName: AccountsTable.lastName,
+                role: TeamMembersTable.role,
+                joinedAt: TeamMembersTable.joinedAt,
+            })
+            .from(TeamMembersTable)
+            .innerJoin(UsersTable, eq(UsersTable.id, TeamMembersTable.userId))
+            .leftJoin(AccountsTable, eq(AccountsTable.userId, TeamMembersTable.userId))
+            .where(eq(TeamMembersTable.teamId, teamId));
+
+        return ctx.json({ data: members }, StatusCodes.OK);
     })
     .get("/:teamId/matches", sValidator("param", teamIdValidator, (result, ctx) => {
         if (!result.success) {

@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useRef } from 'react'
+import { useForm } from 'react-hook-form'
+import { scheduleMatchValidator } from '@shared/validators'
+import type { ScheduleMatch as ScheduleMatchValues } from '@shared/types'
 import client from '../../client'
 
 type ScheduleMatchDialogProps = {
@@ -8,58 +12,60 @@ type ScheduleMatchDialogProps = {
   onScheduled: (notice: string) => void
 }
 
-export default function ScheduleMatchDialog({
+export default function ScheduleMatch({
   teamId,
   teamName,
   onClose,
   onScheduled,
 }: ScheduleMatchDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const [opponentTeamName, setOpponentTeamName] = useState('')
-  const [matchDate, setMatchDate] = useState('')
-  const [error, setError] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const {
+    clearErrors,
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    setError,
+  } = useForm<ScheduleMatchValues>({
+    resolver: zodResolver(scheduleMatchValidator),
+    defaultValues: { opponentTeamName: '', matchDate: '' },
+  })
 
   useEffect(() => {
     dialogRef.current?.showModal()
   }, [])
 
-  async function scheduleMatch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setError('')
-    setIsSubmitting(true)
+  async function scheduleMatch(values: ScheduleMatchValues) {
+    clearErrors()
 
     try {
       const response = await client.team[':teamId'].matches.$post({
         param: { teamId: String(teamId) },
-        json: {
-          opponentTeamName: opponentTeamName.trim(),
-          matchDate: new Date(matchDate).toISOString(),
-        },
+        json: values,
       })
       const result = await response.json()
 
       if (!response.ok || 'error' in result) {
-        throw new Error(
-          'error' in result && typeof result.error === 'string'
+        setError('root.serverError', {
+          type: 'server',
+          message: 'error' in result && typeof result.error === 'string'
             ? result.error
             : 'Unable to schedule the match.',
-        )
+        })
+        return
       }
 
       onScheduled(
         'warning' in result && typeof result.warning === 'string'
           ? result.warning
-          : `Match scheduled with ${opponentTeamName.trim()}. The opposing team has been notified.`,
+          : `Match scheduled with ${values.opponentTeamName}. The opposing team has been notified.`,
       )
       onClose()
     } catch (requestError) {
       console.error('Unable to schedule match', requestError)
-      setError(requestError instanceof Error
-        ? requestError.message
-        : 'Unable to schedule the match. Please try again.')
-    } finally {
-      setIsSubmitting(false)
+      setError('root.serverError', {
+        type: 'server',
+        message: 'Unable to schedule the match. Please try again.',
+      })
     }
   }
 
@@ -85,40 +91,50 @@ export default function ScheduleMatchDialog({
         </button>
       </header>
 
-      <form className="flex flex-col gap-5 p-5 sm:p-8" onSubmit={scheduleMatch}>
+      <form className="flex flex-col gap-5 p-5 sm:p-8" noValidate onSubmit={handleSubmit(scheduleMatch)}>
         <p className="text-sm text-muted">
           Schedule a match for <strong className="text-text-main">{teamName}</strong>. The opposing captain and co-captain will be emailed to accept or reject it.
         </p>
 
-        {error && (
+        {errors.root?.serverError && (
           <p className="border-2 border-accent bg-off-white p-3 font-bold text-accent" role="alert">
-            {error}
+            {errors.root.serverError.message}
           </p>
         )}
 
         <label className="flex flex-col gap-2 font-bold" htmlFor="opponent-team-name">
           Opposing team name
           <input
+            aria-describedby={errors.opponentTeamName ? 'opponent-team-name-error' : undefined}
+            aria-invalid={Boolean(errors.opponentTeamName)}
             autoComplete="off"
             className="w-full border-2 border-text-main bg-white p-3 font-normal focus:outline-none focus:shadow-hard"
             id="opponent-team-name"
-            onChange={(event) => setOpponentTeamName(event.target.value)}
-            required
             type="text"
-            value={opponentTeamName}
+            {...register('opponentTeamName')}
           />
+          {errors.opponentTeamName && (
+            <span className="font-bold text-accent" id="opponent-team-name-error" role="alert">
+              {errors.opponentTeamName.message}
+            </span>
+          )}
         </label>
 
         <label className="flex flex-col gap-2 font-bold" htmlFor="match-date">
           Match date and time
           <input
+            aria-describedby={errors.matchDate ? 'match-date-error' : undefined}
+            aria-invalid={Boolean(errors.matchDate)}
             className="w-full border-2 border-text-main bg-white p-3 font-normal focus:outline-none focus:shadow-hard"
             id="match-date"
-            onChange={(event) => setMatchDate(event.target.value)}
-            required
             type="datetime-local"
-            value={matchDate}
+            {...register('matchDate')}
           />
+          {errors.matchDate && (
+            <span className="font-bold text-accent" id="match-date-error" role="alert">
+              {errors.matchDate.message}
+            </span>
+          )}
         </label>
 
         <div className="flex flex-col-reverse gap-3 border-t-2 border-text-main/20 pt-5 sm:flex-row sm:justify-end">

@@ -4,12 +4,14 @@ import { StatusCodes } from 'http-status-codes'
 import { hasRole } from '@shared/types'
 import { useNavigate } from 'react-router'
 import client from '../../client'
-import ScheduleMatchDialog from './ScheduleMatchDialog'
+import ScheduleMatchDialog from './ScheduleMatch'
 import TeamSettings from './TeamSettings'
 
 type Account = InferResponseType<typeof client.account.$get, StatusCodes.OK>['data']
 const getTeamMatches = client.team[':teamId'].matches.$get
 type TeamMatch = InferResponseType<typeof getTeamMatches, StatusCodes.OK>['data'][number]
+const getTeamMembers = client.team[':teamId'].members.$get
+type TeamMember = InferResponseType<typeof getTeamMembers, StatusCodes.OK>['data'][number]
 
 function displayInvitePolicy(invitePolicy: Account['teams'][number]['team']['invitePolicy']) {
   return invitePolicy === 'Open' ? 'Open team' : 'Invite only'
@@ -37,6 +39,9 @@ export default function TeamPage() {
   const [teamMatches, setTeamMatches] = useState<TeamMatch[]>([])
   const [isLoadingMatches, setIsLoadingMatches] = useState(false)
   const [matchesError, setMatchesError] = useState('')
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false)
+  const [membersError, setMembersError] = useState('')
   const [respondingMatchId, setRespondingMatchId] = useState<number | null>(null)
 
   useEffect(() => {
@@ -110,6 +115,40 @@ export default function TeamPage() {
     }
 
     void loadMatches()
+
+    return () => {
+      isCurrent = false
+    }
+  }, [selectedTeamId, reloadCount])
+
+  useEffect(() => {
+    if (selectedTeamId === null) return
+
+    let isCurrent = true
+
+    async function loadTeamMembers() {
+      setIsLoadingMembers(true)
+      setMembersError('')
+
+      try {
+        const response = await getTeamMembers({
+          param: { teamId: String(selectedTeamId) },
+        })
+        const result = await response.json()
+
+        if (!response.ok || 'error' in result)
+          throw new Error('error' in result ? String(result.error) : 'Unable to load the team roster.')
+
+        if (isCurrent) setTeamMembers(result.data)
+      } catch (error) {
+        console.error('Unable to load the team roster', error)
+        if (isCurrent) setMembersError('Unable to load the team roster. Please try again.')
+      } finally {
+        if (isCurrent) setIsLoadingMembers(false)
+      }
+    }
+
+    void loadTeamMembers()
 
     return () => {
       isCurrent = false
@@ -421,29 +460,52 @@ export default function TeamPage() {
                       </span>
                     )}
                   </div>
-                  {currentMembership ? (
-                    <div className="p-4 sm:p-6">
-                      <div className="flex flex-wrap items-center justify-between gap-3 border-2 border-text-main bg-off-white p-4">
-                        <div>
-                          <p className="flex flex-wrap items-center gap-2 font-bold">
-                            {currentMemberName}
-                            <span className="border border-text-main bg-primary px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
-                              You
-                            </span>
-                          </p>
-                          <p className="mt-1 text-sm text-muted">{account?.email}</p>
-                        </div>
-                        <span className="border border-text-main bg-white px-3 py-1 text-xs font-bold uppercase">
-                          {currentMembership.role === 'CoCaptain' ? 'Co-captain' : currentMembership.role}
-                        </span>
-                      </div>
+                  {isLoadingMembers ? (
+                    <p aria-live="polite" className="p-5 text-muted" role="status">Loading team roster...</p>
+                  ) : membersError ? (
+                    <div className="p-5">
+                      <p className="font-bold text-accent" role="alert">{membersError}</p>
+                      <button
+                        className="mt-3 border-2 border-text-main bg-white px-4 py-2 font-bold uppercase tracking-wide hover:bg-off-white"
+                        onClick={() => setReloadCount((count) => count + 1)}
+                        type="button"
+                      >
+                        Retry
+                      </button>
                     </div>
-                  ) : null}
-                  {currentMembership?.role === 'Member' && (
+                  ) : teamMembers.length > 0 ? (
+                    <ul className="divide-y-2 divide-text-main/15">
+                      {teamMembers.map((member) => {
+                        const memberName = [member.firstName, member.lastName].filter(Boolean).join(' ') || `Team member #${member.userId}`
+                        const isCurrentMember = member.userId === account.AccountsTable.userId
+                        return (
+                          <li className="flex flex-wrap items-center justify-between gap-3 p-4 sm:px-6" key={member.userId}>
+                            <div>
+                              <p className="flex flex-wrap items-center gap-2 font-bold">
+                                {isCurrentMember ? currentMemberName : memberName}
+                                {isCurrentMember && (
+                                  <span className="border border-text-main bg-primary px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                                    You
+                                  </span>
+                                )}
+                              </p>
+                              <p className="mt-1 text-sm text-muted">Joined {formatDate(member.joinedAt)}</p>
+                            </div>
+                            <span className="border border-text-main bg-white px-3 py-1 text-xs font-bold uppercase">
+                              {member.role === 'CoCaptain' ? 'Co-captain' : member.role}
+                            </span>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  ) : (
+                    <p className="p-5 text-muted">No team members found.</p>
+                  )}
+                  {/* {currentMembership?.role === 'Member' && (
                     <p className="border-t border-text-main/15 px-5 py-3 text-sm text-muted">
                       Invite and settings controls are available only to this team’s captain and co-captain.
                     </p>
-                  )}
+                  )} */}
                 </section>
               </div>
             )}
