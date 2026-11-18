@@ -20,6 +20,11 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@shared": path.resolve(import.meta.dirname, "../LLH_Shared")
       }
-    }
+    },
+    test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+  },
   }
 })

@@ -4,9 +4,12 @@ import { StatusCodes } from 'http-status-codes'
 import { hasRole } from '@shared/types'
 import { useNavigate } from 'react-router'
 import client from '../../client'
+import ScheduleMatchDialog from './ScheduleMatchDialog'
 import TeamSettings from './TeamSettings'
 
 type Account = InferResponseType<typeof client.account.$get, StatusCodes.OK>['data']
+const getTeamMatches = client.team[':teamId'].matches.$get
+type TeamMatch = InferResponseType<typeof getTeamMatches, StatusCodes.OK>['data'][number]
 
 function displayInvitePolicy(invitePolicy: Account['teams'][number]['team']['invitePolicy']) {
   return invitePolicy === 'Open' ? 'Open team' : 'Invite only'
@@ -30,6 +33,11 @@ export default function TeamPage() {
   const [actionNotice, setActionNotice] = useState('')
   const [reloadCount, setReloadCount] = useState(0)
   const [isTeamSettingsOpen, setIsTeamSettingsOpen] = useState(false)
+  const [isScheduleMatchOpen, setIsScheduleMatchOpen] = useState(false)
+  const [teamMatches, setTeamMatches] = useState<TeamMatch[]>([])
+  const [isLoadingMatches, setIsLoadingMatches] = useState(false)
+  const [matchesError, setMatchesError] = useState('')
+  const [respondingMatchId, setRespondingMatchId] = useState<number | null>(null)
 
   useEffect(() => {
     let isCurrent = true
@@ -74,6 +82,40 @@ export default function TeamPage() {
     }
   }, [navigate, reloadCount])
 
+  useEffect(() => {
+    if (selectedTeamId === null) return
+
+    let isCurrent = true
+
+    async function loadMatches() {
+      setIsLoadingMatches(true)
+      setMatchesError('')
+
+      try {
+        const response = await client.team[':teamId'].matches.$get({
+          param: { teamId: String(selectedTeamId) },
+        })
+        const result = await response.json()
+
+        if (!response.ok || 'error' in result)
+          throw new Error('error' in result ? String(result.error) : 'Unable to load team matches.')
+
+        if (isCurrent) setTeamMatches(result.data)
+      } catch (error) {
+        console.error('Unable to load team matches', error)
+        if (isCurrent) setMatchesError('Unable to load team matches. Please try again.')
+      } finally {
+        if (isCurrent) setIsLoadingMatches(false)
+      }
+    }
+
+    void loadMatches()
+
+    return () => {
+      isCurrent = false
+    }
+  }, [selectedTeamId, reloadCount])
+
   const filteredTeams = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
     return (account?.teams ?? []).filter(({ team }) =>
@@ -89,6 +131,30 @@ export default function TeamPage() {
   const currentMemberName = account
     ? [account.AccountsTable.firstName, account.AccountsTable.lastName].filter(Boolean).join(' ') || account.email
     : ''
+
+  async function respondToMatch(matchId: number, status: 'Accepted' | 'Rejected') {
+    setRespondingMatchId(matchId)
+    setActionNotice('')
+
+    try {
+      const response = await client.team[':teamId'].matches[':matchId'].respond.$patch({
+        param: { teamId: String(selectedTeamId), matchId: String(matchId) },
+        json: { status },
+      })
+      const result = await response.json()
+
+      if (!response.ok || 'error' in result)
+        throw new Error('error' in result ? String(result.error) : `Unable to ${status.toLowerCase()} the match.`)
+
+      setActionNotice(`Match ${status.toLowerCase()}.`)
+      setReloadCount((count) => count + 1)
+    } catch (error) {
+      console.error(`Unable to ${status.toLowerCase()} match`, error)
+      setActionNotice(error instanceof Error ? error.message : `Unable to ${status.toLowerCase()} the match.`)
+    } finally {
+      setRespondingMatchId(null)
+    }
+  }
 
   return (
     <main className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col overflow-y-auto bg-off-white p-4 sm:p-8">
@@ -159,6 +225,7 @@ export default function TeamPage() {
                             setSelectedTeamId(team.id)
                             setActionNotice('')
                             setIsTeamSettingsOpen(false)
+                            setIsScheduleMatchOpen(false)
                           }}
                           type="button"
                         >
@@ -221,7 +288,7 @@ export default function TeamPage() {
                         <div className="flex flex-wrap gap-3">
                           <button
                             className="inline-flex items-center gap-2 border-2 border-text-main bg-primary px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white shadow-hard-hover transition-all hover:shadow-hard"
-                            onClick={() => setActionNotice('Player invitations are not connected to a server action yet.')}
+                            onClick={() => setActionNotice('Not connected.')}
                             type="button"
                           >
                             <span aria-hidden="true" className="material-symbols-outlined text-lg">person_add</span>
@@ -237,6 +304,14 @@ export default function TeamPage() {
                               Team Settings
                             </button>
                           )}
+                          <button
+                            className="inline-flex items-center gap-2 border-2 border-text-main bg-white px-4 py-2.5 text-sm font-bold uppercase tracking-wide shadow-hard-hover transition-all hover:bg-off-white hover:shadow-hard"
+                            onClick={() => setIsScheduleMatchOpen(true)}
+                            type="button"
+                          >
+                            <span aria-hidden="true" className="material-symbols-outlined text-lg">event</span>
+                            Schedule Match
+                          </button>
                         </div>
                       )}
                     </div>
@@ -255,6 +330,84 @@ export default function TeamPage() {
                     teamId={selectedTeam.team.id}
                   />
                 )}
+
+                {isScheduleMatchOpen && canManageTeam && (
+                  <ScheduleMatchDialog
+                    onClose={() => setIsScheduleMatchOpen(false)}
+                    onScheduled={(notice) => {
+                      setActionNotice(notice)
+                      setReloadCount((count) => count + 1)
+                    }}
+                    teamId={selectedTeam.team.id}
+                    teamName={selectedTeam.team.name}
+                  />
+                )}
+
+                <section aria-labelledby="matches-heading" className="border-2 border-text-main bg-white shadow-hard">
+                  <div className="flex items-center gap-2 border-b-2 border-text-main p-4 sm:px-6">
+                    <span aria-hidden="true" className="material-symbols-outlined text-primary">event</span>
+                    <h2 className="font-heading text-2xl font-bold uppercase" id="matches-heading">Team Matches</h2>
+                  </div>
+                  {isLoadingMatches ? (
+                    <p aria-live="polite" className="p-5 text-muted" role="status">Loading matches...</p>
+                  ) : matchesError ? (
+                    <div className="p-5">
+                      <p className="font-bold text-accent" role="alert">{matchesError}</p>
+                      <button
+                        className="mt-3 border-2 border-text-main bg-white px-4 py-2 font-bold uppercase tracking-wide hover:bg-off-white"
+                        onClick={() => setReloadCount((count) => count + 1)}
+                        type="button"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  ) : teamMatches.length === 0 ? (
+                    <p className="p-5 text-muted">No matches have been scheduled for this team.</p>
+                  ) : (
+                    <ul className="divide-y-2 divide-text-main/15">
+                      {teamMatches.map((match) => {
+                        const canRespond = !match.isChallenger &&
+                          match.status === 'Pending' &&
+                          canManageTeam
+                        return (
+                          <li className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6" key={match.id}>
+                            <div>
+                              <p className="font-bold">
+                                vs. {match.otherTeamName}
+                              </p>
+                              <p className="mt-1 text-sm text-muted">
+                                {new Date(match.matchDate).toLocaleString()} · {match.sport}
+                              </p>
+                              <p className="mt-1 text-xs font-bold uppercase tracking-wide text-primary">
+                                {match.status}
+                              </p>
+                            </div>
+                            {canRespond && (
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  className="border-2 border-text-main bg-primary px-4 py-2 text-sm font-bold uppercase tracking-wide text-white disabled:opacity-60"
+                                  disabled={respondingMatchId === match.id}
+                                  onClick={() => void respondToMatch(match.id, 'Accepted')}
+                                  type="button"
+                                >
+                                  Accept
+                                </button>
+                                <button
+                                  className="border-2 border-text-main bg-white px-4 py-2 text-sm font-bold uppercase tracking-wide hover:bg-off-white disabled:opacity-60"
+                                  disabled={respondingMatchId === match.id}
+                                  onClick={() => void respondToMatch(match.id, 'Rejected')}
+                                  type="button"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
+                </section>
 
                 <section aria-labelledby="roster-heading" className="border-2 border-text-main bg-white shadow-hard">
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-text-main p-4 sm:px-6">
