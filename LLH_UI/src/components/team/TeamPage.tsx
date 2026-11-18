@@ -4,6 +4,7 @@ import { StatusCodes } from 'http-status-codes'
 import { hasRole } from '@shared/types'
 import { useNavigate } from 'react-router'
 import client from '../../client'
+import TeamSettings from './TeamSettings'
 
 type Account = InferResponseType<typeof client.account.$get, StatusCodes.OK>['data']
 
@@ -28,6 +29,7 @@ export default function TeamPage() {
   const [loadError, setLoadError] = useState('')
   const [actionNotice, setActionNotice] = useState('')
   const [reloadCount, setReloadCount] = useState(0)
+  const [isTeamSettingsOpen, setIsTeamSettingsOpen] = useState(false)
 
   useEffect(() => {
     let isCurrent = true
@@ -156,6 +158,7 @@ export default function TeamPage() {
                           onClick={() => {
                             setSelectedTeamId(team.id)
                             setActionNotice('')
+                            setIsTeamSettingsOpen(false)
                           }}
                           type="button"
                         >
@@ -224,14 +227,16 @@ export default function TeamPage() {
                             <span aria-hidden="true" className="material-symbols-outlined text-lg">person_add</span>
                             Invite Players
                           </button>
-                          <button
-                            className="inline-flex items-center gap-2 border-2 border-text-main bg-white px-4 py-2.5 text-sm font-bold uppercase tracking-wide shadow-hard-hover transition-all hover:bg-off-white hover:shadow-hard"
-                            onClick={() => setActionNotice('Team settings are not connected to a server action yet.')}
-                            type="button"
-                          >
-                            <span aria-hidden="true" className="material-symbols-outlined text-lg">settings</span>
-                            Team Settings
-                          </button>
+                          {currentMembership?.role === 'Captain' && (
+                            <button
+                              className="inline-flex items-center gap-2 border-2 border-text-main bg-white px-4 py-2.5 text-sm font-bold uppercase tracking-wide shadow-hard-hover transition-all hover:bg-off-white hover:shadow-hard"
+                              onClick={() => setIsTeamSettingsOpen(true)}
+                              type="button"
+                            >
+                              <span aria-hidden="true" className="material-symbols-outlined text-lg">settings</span>
+                              Team Settings
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -242,6 +247,14 @@ export default function TeamPage() {
                     )}
                   </div>
                 </section>
+
+                {isTeamSettingsOpen && currentMembership?.role === 'Captain' && (
+                  <TeamSettings
+                    onClose={() => setIsTeamSettingsOpen(false)}
+                    onPromoted={() => setActionNotice('Player promoted to co-captain.')}
+                    teamId={selectedTeam.team.id}
+                  />
+                )}
 
                 <section aria-labelledby="roster-heading" className="border-2 border-text-main bg-white shadow-hard">
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-text-main p-4 sm:px-6">
@@ -271,9 +284,6 @@ export default function TeamPage() {
                           {currentMembership.role === 'CoCaptain' ? 'Co-captain' : currentMembership.role}
                         </span>
                       </div>
-                      <p className="mt-3 text-sm text-muted">
-                        The current server API only provides your own team membership, not the complete roster.
-                      </p>
                     </div>
                   ) : null}
                   {currentMembership?.role === 'Member' && (

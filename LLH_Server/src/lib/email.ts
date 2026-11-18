@@ -1,16 +1,24 @@
-import { Resend } from 'resend';
-import "dotenv/config"
+import { Resend } from "resend";
+import "dotenv/config";
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-if (!RESEND_API_KEY)
-    throw new Error("resend api key not found");
+export async function sendEmail(
+    sender: string,
+    receiver: string,
+    subject: string,
+    text: string,
+) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey)
+        throw new Error("Resend API key not found");
 
+    const resend = new Resend(apiKey);
+    const { error } = await resend.emails.send({
+        from: sender,
+        to: receiver,
+        subject,
+        text,
+    });
 
-const resend = new Resend(RESEND_API_KEY);
-
-resend.emails.send({
-  from: 'onboarding@resend.dev',
-  to: 'luismuraya11@gmail.com',
-  subject: 'Hello World',
-  html: '<p>Congrats on sending your <strong>first email</strong>!</p>'
-});
+    if (error)
+        throw new Error(`Could not send email: ${error.message}`);
+}

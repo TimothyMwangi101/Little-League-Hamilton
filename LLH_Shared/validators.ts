@@ -33,6 +33,12 @@ export const createTeamValidator = z.object({
     .check() satisfies z.ZodType<Sport>,
 });
 
+export const promoteCoCaptainParamsValidator = z.object({
+    teamId: z.coerce.number().int().positive(),
+    userId: z.coerce.number().int().positive(),
+});
+
+
 export const teamSearchValidator = z.object({
   page: z.coerce.number().int().positive().default(1),
   search: z.string().trim().max(50).optional(),
