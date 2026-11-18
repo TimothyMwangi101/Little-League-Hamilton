@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { invitePolicies, sports, type Sport } from "@shared/types";
 import client from "../../client";
 import type { InferResponseType } from "hono/client";
-import type { StatusCodes } from "http-status-codes";
+import { StatusCodes } from "http-status-codes";
 import { teamSearchValidator } from "@shared/validators";
 import type z from "zod";
+import { useNavigate } from "react-router";
 
 type TeamsResponse = InferResponseType<
   typeof client.teams.$get,
@@ -59,6 +60,7 @@ export function useTeamSearchUrl() {
 }
 
 export default function SearchPage() {
+  const navigate = useNavigate();
   const [params, update] = useTeamSearchUrl();
   const {
     page,
@@ -77,6 +79,9 @@ export default function SearchPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [reloadCount, setReloadCount] = useState(0);
+  const [joiningTeamId, setJoiningTeamId] = useState<number | null>(null);
+  const [joinedTeamIds, setJoinedTeamIds] = useState<number[]>([]);
+  const [joinError, setJoinError] = useState<{ teamId: number; message: string } | null>(null);
 
   useEffect(() => {
     let isCurrent = true;
@@ -127,6 +132,41 @@ export default function SearchPage() {
     selectedInvitePolicies,
     selectedSports,
   ]);
+
+  async function joinTeam(teamId: number) {
+    setJoiningTeamId(teamId);
+    setJoinError(null);
+
+    try {
+      const response = await client.account.join.$post({ json: { id: teamId } });
+      const statusCode: number = response.status;
+      if (statusCode === StatusCodes.UNAUTHORIZED) {
+        await navigate("/login");
+        return;
+      }
+
+      const result = await response.json();
+      if (!response.ok || "error" in result) {
+        throw new Error(
+          "error" in result && typeof result.error === "string"
+            ? result.error
+            : "Unable to join this team.",
+        );
+      }
+
+      setJoinedTeamIds((current) =>
+        current.includes(teamId) ? current : [...current, teamId],
+      );
+    } catch (error) {
+      console.error("Unable to join team", error);
+      setJoinError({
+        teamId,
+        message: error instanceof Error ? error.message : "Unable to join this team. Please try again.",
+      });
+    } finally {
+      setJoiningTeamId(null);
+    }
+  }
 
   function toggleInvitePolicy(invitePolicy: InvitePolicy) {
     update({
@@ -388,9 +428,30 @@ export default function SearchPage() {
                       )}
                     </div>
                   </div>
-                  <p className="border-2 border-text-main bg-off-white py-3 text-center font-bold uppercase tracking-wider">
-                    Team #{team.team.id}
-                  </p>
+                  <div className="flex flex-col gap-3">
+                    <p className="border-2 border-text-main bg-off-white py-3 text-center font-bold uppercase tracking-wider">
+                      Team #{team.team.id}
+                    </p>
+                    {team.team.invitePolicy === "Open" && (
+                      <button
+                        className="border-2 border-text-main bg-primary px-4 py-3 font-bold uppercase tracking-wider text-white shadow-hard transition-all hover:shadow-hard-hover disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={joiningTeamId === team.team.id || joinedTeamIds.includes(team.team.id)}
+                        onClick={() => void joinTeam(team.team.id)}
+                        type="button"
+                      >
+                        {joiningTeamId === team.team.id
+                          ? "Joining..."
+                          : joinedTeamIds.includes(team.team.id)
+                            ? "Joined"
+                            : "Join team"}
+                      </button>
+                    )}
+                    {joinError?.teamId === team.team.id && (
+                      <p className="border-2 border-accent bg-off-white p-3 text-sm text-accent" role="alert">
+                        {joinError.message}
+                      </p>
+                    )}
+                  </div>
                 </article>
               );
             })}

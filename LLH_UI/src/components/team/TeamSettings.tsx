@@ -1,7 +1,7 @@
 
 
-import { useEffect, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
+import { useEffect, useRef } from 'react'
+import { useForm } from 'react-hook-form'
 import client from '../../client'
 
 type TeamSettingsProps = {
@@ -10,21 +10,26 @@ type TeamSettingsProps = {
   onPromoted: () => void
 }
 
+type PromotePlayerFormValues = {
+  email: string
+}
+
 export default function TeamSettings({ teamId, onClose, onPromoted }: TeamSettingsProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const [email, setEmail] = useState('')
-  const [error, setError] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const {
+    clearErrors,
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    setError,
+  } = useForm<PromotePlayerFormValues>({ defaultValues: { email: '' } })
 
   useEffect(() => {
     dialogRef.current?.showModal()
   }, [])
 
-  async function promotePlayer(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setError('')
-    setIsSubmitting(true)
-
+  async function promotePlayer({ email }: PromotePlayerFormValues) {
+    clearErrors()
     try {
       const lookupResponse = await client.user.$query({ json: { email: email.trim() } })
       const lookupResult = await lookupResponse.json()
@@ -54,9 +59,12 @@ export default function TeamSettings({ teamId, onClose, onPromoted }: TeamSettin
       onClose()
     } catch (requestError) {
       console.error('Unable to promote team member', requestError)
-      setError(requestError instanceof Error ? requestError.message : 'Unable to promote that player. Please try again.')
-    } finally {
-      setIsSubmitting(false)
+      setError('root.serverError', {
+        type: 'server',
+        message: requestError instanceof Error
+          ? requestError.message
+          : 'Unable to promote that player. Please try again.',
+      })
     }
   }
 
@@ -82,7 +90,7 @@ export default function TeamSettings({ teamId, onClose, onPromoted }: TeamSettin
         </button>
       </header>
 
-      <form className="flex flex-col gap-5 p-5 sm:p-8" onSubmit={promotePlayer}>
+      <form className="flex flex-col gap-5 p-5 sm:p-8" onSubmit={handleSubmit(promotePlayer)}>
         <div>
           <h3 className="font-heading text-xl font-bold">Promote a player</h3>
           <p className="mt-1 text-sm text-muted">
@@ -90,23 +98,28 @@ export default function TeamSettings({ teamId, onClose, onPromoted }: TeamSettin
           </p>
         </div>
 
-        {error && (
+        {errors.root?.serverError && (
           <p className="border-2 border-accent bg-off-white p-3 font-bold text-accent" role="alert">
-            {error}
+            {errors.root.serverError.message}
           </p>
         )}
 
         <label className="flex flex-col gap-2 font-bold" htmlFor="player-email">
           Player email
           <input
+            aria-describedby={errors.email ? 'player-email-error' : undefined}
+            aria-invalid={Boolean(errors.email)}
             autoComplete="email"
             className="w-full border-2 border-text-main bg-white p-3 font-normal focus:outline-none focus:shadow-hard"
             id="player-email"
-            onChange={(event) => setEmail(event.target.value)}
-            required
             type="email"
-            value={email}
+            {...register('email', { required: 'Player email is required.' })}
           />
+          {errors.email && (
+            <span className="font-bold text-accent" id="player-email-error" role="alert">
+              {errors.email.message}
+            </span>
+          )}
         </label>
 
         <div className="flex flex-col-reverse gap-3 border-t-2 border-text-main/20 pt-5 sm:flex-row sm:justify-end">
