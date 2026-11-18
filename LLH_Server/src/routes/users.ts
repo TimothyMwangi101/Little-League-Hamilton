@@ -11,9 +11,9 @@ const app = new Hono()
     const { id, email } = ctx.req.valid("json");
 
     if (!id && !email)
-      return ctx.json({ error: "Need either email or id to queary" }, StatusCodes.BAD_REQUEST);
+      return ctx.json({ error: "Need either email or id to query" }, StatusCodes.BAD_REQUEST);
 
-    let user;
+    let user: { id: number, email: string };
 
     if (id) {
       [user] = await db

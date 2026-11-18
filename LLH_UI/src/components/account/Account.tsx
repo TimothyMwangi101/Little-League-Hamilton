@@ -1,5 +1,4 @@
-import type { Account, AccountUpdates } from "./AccountPage"
-import type { Team } from "@shared/types"
+import type { Account, AccountUpdates, TeamMembership } from "./AccountPage"
 import ProfileSection from "./ProfileSection"
 import SportsSection from "./SportsSection"
 import StatsSection from "./StatsSection"
@@ -11,12 +10,14 @@ type AccountViewProps = {
     isSaving: boolean
     onSave: (updates: AccountUpdates) => Promise<boolean>
     saveError: string
-    onTeamCreated: (team: Team) => void
+    teams: Account["teams"]
+    onTeamCreated: (team: TeamMembership) => void
 }
 
 export default function AccountView({
     account,
     email,
+    teams,
     isSaving,
     onSave,
     saveError,
@@ -31,11 +32,11 @@ export default function AccountView({
             )}
 
             <ProfileSection account={account} email={email} isSaving={isSaving} onSave={onSave} />
-            <StatsSection account={account} />
+            <StatsSection teams={teams} />
             <div className="grid gap-8 lg:grid-cols-2">
                 <SportsSection account={account} isSaving={isSaving} onSave={onSave} />
                 <TeamsSection
-                    account={account}
+                    teams={teams}
                     onTeamCreated={onTeamCreated}
                 />
             </div>

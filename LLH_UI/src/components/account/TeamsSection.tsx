@@ -1,84 +1,47 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Link } from "react-router"
-import type { Account } from "./AccountPage"
+import type { Account, TeamMembership } from "./AccountPage"
 import Button, { actionButtonClass } from "../shared/Button"
 import TeamForm from "../team/TeamForm";
-import client from '../../client';
-import type { Team } from "@shared/types";
 
 type TeamsSectionProps = {
-    account: Account["AccountsTable"]
-    onTeamCreated: (team: Team) => void
+    teams: Account["teams"]
+    onTeamCreated: (team: TeamMembership) => void
 }
 
-export default function TeamsSection({ account, onTeamCreated }: TeamsSectionProps) {
+export default function TeamsSection({ teams, onTeamCreated }: TeamsSectionProps) {
     const [isCreatingForm, setIsCreatingForm] = useState(false)
-    const [team, setTeam] = useState<Team | undefined>(undefined);
-    const [teamLoadError, setTeamLoadError] = useState("")
 
-    function handleTeamCreated(createdTeam: Team) {
-        setTeam(createdTeam)
+    function handleTeamCreated(createdTeam: TeamMembership) {
         onTeamCreated(createdTeam)
     }
-
-    useEffect(() => {
-        if (!account.team || team?.id === account.team) return
-
-        let isCurrent = true
-
-        async function loadTeam() {
-            try {
-                const response = await client.team.$get()
-                const result = await response.json()
-
-                if ("error" in result) throw new Error(String(result.error))
-
-                if (!result.data) throw new Error("Your team could not be found.")
-
-                if (isCurrent) {
-                    setTeam(result.data)
-                    setTeamLoadError("")
-                }
-            } catch (error) {
-                console.error(error)
-                if (isCurrent) {
-                    setTeam(undefined)
-                    setTeamLoadError("Unable to load your team. Please try again.")
-                }
-            }
-        }
-
-        void loadTeam()
-        return () => {
-            isCurrent = false
-        }
-    }, [account.team, team?.id])
 
     return (
         <section aria-labelledby="teams-heading" className="border-2 border-text-main bg-surface shadow-hard">
             <div className="border-b-2 border-text-main bg-background-light p-5">
                 <h2 className="font-heading text-2xl font-bold uppercase tracking-tight text-text-main" id="teams-heading">
-                    My Team
+                    My Teams
                 </h2>
             </div>
             <div className="flex flex-col gap-5 p-5">
-                <div>
-                    <p className="border-2 border-text-main bg-primary px-4 py-2 font-bold uppercase tracking-wide text-white inline">
-                        {account.team
-                            ? team?.id === account.team
-                                ? team.name
-                                : teamLoadError || "Loading your team..."
-                            : "You are not on a team yet."}
-                    </p>
-                    {!account.team && (
-                        <p className="mt-1 text-sm text-muted">
-                            Create a team and recruit players, or browse existing teams to join an open roster.
-                        </p>
-                    )}
-                </div>
-                {teamLoadError && (
-                    <p role="alert" className="border-2 border-accent bg-surface p-3 font-bold text-accent">
-                        {teamLoadError}
+                {teams.length > 0 ? (
+                    <ul className="space-y-3">
+                        {teams.map(({ team, role, wins, losses, draws }) => (
+                            <li className="border-2 border-text-main bg-off-white p-4" key={team.id}>
+                                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                    <h3 className="font-heading text-xl font-bold">{team.name}</h3>
+                                    <span className="text-sm font-bold uppercase tracking-wide text-muted">{role}</span>
+                                </div>
+                                <p className="mt-1 text-sm text-muted">{team.sport}</p>
+                                <p className="mt-3 text-sm font-bold">
+                                    Record: {wins} wins, {losses} losses, {draws} draws
+                                </p>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="text-muted">
+                        You are not on a team yet. Create a team or browse existing teams to join an open roster.
                     </p>
                 )}
                 <div className="flex flex-col gap-3 border-t-2 border-text-main/10 pt-4 sm:flex-row">

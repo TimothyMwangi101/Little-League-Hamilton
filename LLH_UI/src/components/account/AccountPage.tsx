@@ -4,10 +4,10 @@ import AccountView from './Account.tsx'
 import type { InferRequestType, InferResponseType } from "hono/client";
 import { StatusCodes } from "http-status-codes";
 import client from "../../client";
-import type { Team } from '@shared/types';
 
 export type Account = InferResponseType<typeof client.account.$get, StatusCodes.OK>["data"];
 export type AccountUpdates = InferRequestType<typeof client.account.$patch>["json"];
+export type TeamMembership = Account["teams"][number];
 
 
 export default function AccountPage() {
@@ -24,7 +24,8 @@ export default function AccountPage() {
       try {
         const response = await client.account.$get();
 
-        if (response.status == StatusCodes.UNAUTHORIZED) {
+        const statusCode: number = response.status
+        if (statusCode === StatusCodes.UNAUTHORIZED) {
           await navigate('/login', { replace: true })
           return
         }
@@ -52,14 +53,13 @@ export default function AccountPage() {
     }
   }, [navigate])
 
-  function handleTeamCreated(team: Team) {
+  function handleTeamCreated(team: TeamMembership) {
     setAccount((currentAccount) => currentAccount
       ? {
           ...currentAccount,
-          AccountsTable: {
-            ...currentAccount.AccountsTable,
-            team: team.id,
-          },
+          teams: currentAccount.teams.some(({ team: existingTeam }) => existingTeam.id === team.team.id)
+            ? currentAccount.teams
+            : [...currentAccount.teams, team],
         }
       : currentAccount)
   }
@@ -108,6 +108,7 @@ export default function AccountPage() {
     <AccountView
       account={account.AccountsTable}
       email={account.email}
+      teams={account.teams}
       isSaving={isSaving}
       onSave={saveAccount}
       saveError={updateError}

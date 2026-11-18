@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { invitePolicies, type InvitePolicy } from '@shared/types';
+import { invitePolicies } from '@shared/types';
 import client from '../../client';
-import type { InferResponseType } from 'hono';
+import type { InferResponseType } from 'hono/client';
 import type { StatusCodes } from 'http-status-codes';
 
 type Teams = InferResponseType<typeof client.teams.$get, StatusCodes.OK>["data"];
+type InvitePolicy = Teams[number]["team"]["invitePolicy"]
 
 export default function SearchPage() {
   const [query, setQuery] = useState('')
@@ -50,10 +51,11 @@ export default function SearchPage() {
     return teams.filter((team) => {
       const matchesQuery =
         normalizedQuery.length === 0 ||
-        team.name.toLowerCase().includes(normalizedQuery) ||
-        String(team.captainId).includes(normalizedQuery)
+        team.team.name.toLowerCase().includes(normalizedQuery) ||
+        team.team.sport.toLowerCase().includes(normalizedQuery) ||
+        String(team.team.id).includes(normalizedQuery)
       const matchesInvitePolicy =
-        selectedInvitePolicies.length === 0 || selectedInvitePolicies.includes(team.invitePolicy)
+        selectedInvitePolicies.length === 0 || selectedInvitePolicies.includes(team.team.invitePolicy)
 
       return matchesQuery && matchesInvitePolicy
     })
@@ -146,7 +148,7 @@ export default function SearchPage() {
           role="search"
         >
           <label className="sr-only" htmlFor="team-search">
-            Search teams or captains
+            Search teams or sports
           </label>
           <div className="relative flex items-center">
             <span aria-hidden="true" className="material-symbols-outlined absolute left-4 text-3xl">
@@ -156,7 +158,7 @@ export default function SearchPage() {
               className="h-16 w-full border-2 border-text-main bg-off-white py-3 pl-14 pr-28 text-lg placeholder:text-muted focus:outline-none focus:shadow-hard"
               id="team-search"
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search teams or captains..."
+              placeholder="Search teams or sports..."
               type="search"
               value={query}
             />
@@ -214,28 +216,27 @@ export default function SearchPage() {
             {filteredTeams.map((team) => (
               <article
                 className="flex h-full flex-col justify-between border-2 border-text-main bg-white p-6 transition-shadow hover:shadow-hard"
-                key={team.id}
+                key={team.team.id}
               >
                 <div>
                   <div className="mb-4 flex items-start justify-between gap-2">
                     <span
-                      className={`flex items-center gap-1 font-bold ${team.invitePolicy === 'Open' ? 'text-primary' : 'text-muted'}`}
+                      className={`flex items-center gap-1 font-bold ${team.team.invitePolicy === 'Open' ? 'text-primary' : 'text-muted'}`}
                     >
                       <span aria-hidden="true" className="material-symbols-outlined text-xl">
-                        {team.invitePolicy === 'Open' ? 'person' : 'lock'}
+                        {team.team.invitePolicy === 'Open' ? 'person' : 'lock'}
                       </span>
-                      {team.invitePolicy === 'Open' ? 'Open' : 'Invite Only'}
+                      {team.team.invitePolicy === 'Open' ? 'Open' : 'Invite Only'}
                     </span>
                   </div>
-                  <h3 className="mb-2 font-heading text-2xl font-bold leading-tight">{team.name}</h3>
+                  <h3 className="mb-2 font-heading text-2xl font-bold leading-tight">{team.team.name}</h3>
                   <div className="mb-6 space-y-2 border-t-2 border-dashed border-muted pt-4">
-                    <p className="text-base">
-                      <strong>Captain account:</strong> #{team.captainId}
-                    </p>
+                    <p className="text-base"><strong>Sport:</strong> {team.team.sport}</p>
+                    <p className="text-base"><strong>Record:</strong> {team.wins}-{team.losses}-{team.draws}</p>
                   </div>
                 </div>
                 <p className="border-2 border-text-main bg-off-white py-3 text-center font-bold uppercase tracking-wider">
-                  Team details coming soon
+                  Team #{team.team.id}
                 </p>
               </article>
             ))}

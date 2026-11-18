@@ -81,7 +81,7 @@ function Nav() {
             </span>
           </span>
           <h1 className="hidden truncate font-heading min-[480px]:block text-xl font-bold uppercase">
-            Hamilton Little League
+            Little League Hamilton
           </h1>
         </Link>
 
