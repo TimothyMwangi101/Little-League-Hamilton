@@ -6,6 +6,7 @@ const links = [
   { label: 'Dashboard', to: '/', icon: 'dashboard' },
   { label: 'Map', to: '/map', icon: 'location_on' },
   { label: 'Search', to: '/search', icon: 'search' },
+  { label: 'Teams', to: '/teams', icon: 'groups' },
   { label: 'Login', to: '/login', icon: 'person' },
 ] as const
 

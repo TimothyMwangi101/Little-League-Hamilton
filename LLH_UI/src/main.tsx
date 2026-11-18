@@ -8,6 +8,7 @@ import Nav from './components/shared/Nav.tsx'
 import AccountPage from './components/account/AccountPage.tsx'
 import MapPage from './components/map/MapPage.tsx'
 import SearchPage from './components/search/SearchPage.tsx'
+import TeamPage from './components/team/TeamPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -20,6 +21,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/account" element={<AccountPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/teams" element={<TeamPage />} />
         </Routes>
       </div>
     </BrowserRouter>
