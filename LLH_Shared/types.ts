@@ -1,5 +1,5 @@
 import type z from "zod"
-import type { AccountsTable, MatchesTable, TeamsTable } from "../LLH_Server/src/db/schemas.ts"
+import type { AccountsTable, MatchesTable, TeamMembersTable, TeamRecordsView, TeamsTable } from "../LLH_Server/src/db/schemas.ts"
 import type { createTeamValidator, createUserValidator, loginValidator, resetPasswordValidator } from "./validators.ts"
 
 export const regions = ["Hamilton Mountain", "Lower Hamilton"] as const
@@ -21,6 +21,15 @@ export type MatchStatus = (typeof matchStatus)[number]
 export type Team = typeof TeamsTable.$inferSelect;
 export type Match = typeof MatchesTable.$inferSelect;
 export type Account = typeof AccountsTable.$inferSelect;
+export type TeamRecord = typeof TeamRecordsView.$inferSelect;
+export type TeamMembership = typeof TeamMembersTable.$inferSelect;
+export type TeamWithMembership = {
+  team: Team;
+  role: Roles;
+  wins: number;
+  losses: number;
+  draws: number;
+};
 export type CreateTeam = z.infer<typeof createTeamValidator>;
 
 export type CreateUser = z.infer<typeof createUserValidator>;

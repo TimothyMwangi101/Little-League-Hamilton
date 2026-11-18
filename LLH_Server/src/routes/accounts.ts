@@ -1,34 +1,26 @@
 import { sValidator } from "@hono/standard-validator";
-import { Hono } from 'hono'
-import { AccountsTable, TeamsTable, UsersTable } from "../db/schemas.ts"
-import db from "../db/db.ts"
-import { and, eq, isNull } from "drizzle-orm";
+import { Hono } from "hono";
+import { eq } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
+import { AccountsTable, TeamMembersTable, TeamRecordsView, TeamsTable, UsersTable } from "../db/schemas.ts";
+import db from "../db/db.ts";
 import { refreshJWT, authenticate, type UserPayloadEnv } from "../middleware/auth.ts";
-import { joinTeamValidator, updateAccountValidator } from '../../../LLH_Shared/validators.ts';
+import { joinTeamValidator, updateAccountValidator } from "../../../LLH_Shared/validators.ts";
 
 const app = new Hono<UserPayloadEnv>()
     .use(authenticate, refreshJWT)
-    .get('/', async (ctx) => {
-        const { id } = ctx.get('jwtPayload') ?? undefined;
-
-        if (!id)
-            return ctx.json({ error: "Not authenticated" }, StatusCodes.UNAUTHORIZED);
-
-        const [account] = await db
-            .select({ AccountsTable, email: UsersTable.email })
-            .from(AccountsTable)
-            .innerJoin(UsersTable, eq(UsersTable.id, AccountsTable.userId))
-            .where(eq(AccountsTable.userId, id));
+    .get("/", async (ctx) => {
+        const { id } = ctx.get("jwtPayload");
+        const account = await getAccountData(id);
 
         if (!account)
-            return ctx.json({ error: "Error getting account" }, StatusCodes.NOT_FOUND);
+            return ctx.json({ error: "Account not found" }, StatusCodes.NOT_FOUND);
 
-        return ctx.json({ data: account }, StatusCodes.OK)
+        return ctx.json({ data: account }, StatusCodes.OK);
     })
     .patch("/", sValidator("json", updateAccountValidator, (result, ctx) => {
         if (!result.success) {
-            console.error(result.error)
+            console.error(result.error);
             return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
         }
     }), async (ctx) => {
@@ -38,22 +30,16 @@ const app = new Hono<UserPayloadEnv>()
             .update(AccountsTable)
             .set(updates)
             .where(eq(AccountsTable.userId, id))
-            .returning();
+            .returning({ userId: AccountsTable.userId });
 
         if (!updatedAccount)
             return ctx.json({ error: "Account not found" }, StatusCodes.NOT_FOUND);
 
-        const [user] = await db
-            .select({ email: UsersTable.email })
-            .from(UsersTable)
-            .where(eq(UsersTable.id, id));
+        const account = await getAccountData(id);
+        if (!account)
+            return ctx.json({ error: "Account not found" }, StatusCodes.INTERNAL_SERVER_ERROR);
 
-        if (!user)
-            return ctx.json({ error: "Error getting account" }, StatusCodes.INTERNAL_SERVER_ERROR);
-
-        return ctx.json({
-            data: { AccountsTable: updatedAccount, email: user.email },
-        }, StatusCodes.OK);
+        return ctx.json({ data: account }, StatusCodes.OK);
     })
     .post("/create", async (ctx) => {
         const { id } = ctx.get("jwtPayload");
@@ -62,89 +48,81 @@ const app = new Hono<UserPayloadEnv>()
     })
     .post("/join", sValidator("json", joinTeamValidator, (result, ctx) => {
         if (!result.success) {
-            console.error(result.error)
+            console.error(result.error);
             return ctx.json({ error: "Invalid request body" }, StatusCodes.BAD_REQUEST);
         }
     }), async (ctx) => {
         const { id: userId } = ctx.get("jwtPayload");
-        const { teamId } = ctx.req.valid("json");
+        const { id: teamId } = ctx.req.valid("json");
         const [team] = await db
-            .select()
+            .select({ id: TeamsTable.id, invitePolicy: TeamsTable.invitePolicy })
             .from(TeamsTable)
             .where(eq(TeamsTable.id, teamId));
 
         if (!team)
             return ctx.json({ error: "Team not found" }, StatusCodes.NOT_FOUND);
-        
-        // TODO: send email.
+
         if (team.invitePolicy !== "Open")
             return ctx.json({ error: "This team requires an invitation" }, StatusCodes.FORBIDDEN);
 
         const [account] = await db
-            .select({ team: AccountsTable.team })
+            .select({ userId: AccountsTable.userId })
             .from(AccountsTable)
             .where(eq(AccountsTable.userId, userId));
 
         if (!account)
             return ctx.json({ error: "Account not found" }, StatusCodes.NOT_FOUND);
 
-        if (account.team !== null && account.team !== teamId)
-            return ctx.json({ error: "User already belongs to a team" }, StatusCodes.CONFLICT);
+        await db
+            .insert(TeamMembersTable)
+            .values({ teamId, userId, role: "Member" })
+            .onConflictDoNothing();
 
-        if (account.team === null) {
-            const [updated] = await db
-                .update(AccountsTable)
-                .set({ team: teamId })
-                .where(and(eq(AccountsTable.userId, userId), isNull(AccountsTable.team)))
-                .returning({ userId: AccountsTable.userId });
+        const accountData = await getAccountData(userId);
+        if (!accountData)
+            return ctx.json({ error: "Account not found" }, StatusCodes.INTERNAL_SERVER_ERROR);
 
-            if (!updated) {
-                const [latestAccount] = await db
-                    .select({ team: AccountsTable.team })
-                    .from(AccountsTable)
-                    .where(eq(AccountsTable.userId, userId));
-
-                if (!latestAccount)
-                    return ctx.json({ error: "Account not found" }, StatusCodes.NOT_FOUND);
-
-                if (latestAccount.team !== teamId)
-                    return ctx.json({ error: "User already belongs to a team" }, StatusCodes.CONFLICT);
-            }
-        }
-
-        const [user] = await db
-            .select({ AccountsTable, email: UsersTable.email })
-            .from(AccountsTable)
-            .innerJoin(UsersTable, eq(UsersTable.id, AccountsTable.userId))
-            .where(eq(AccountsTable.userId, userId));
-
-        if (!user)
-            return ctx.json({ error: "Error getting account" }, StatusCodes.INTERNAL_SERVER_ERROR);
-
-        return ctx.json({ data: user }, StatusCodes.OK);
+        return ctx.json({ data: accountData }, StatusCodes.OK);
     });
 
-export async function getAccount(id: number) {
+async function getAccountData(userId: number) {
     const [account] = await db
-        .select()
+        .select({ AccountsTable, email: UsersTable.email })
         .from(AccountsTable)
-        .where(eq(AccountsTable.userId, id));
+        .innerJoin(UsersTable, eq(UsersTable.id, AccountsTable.userId))
+        .where(eq(AccountsTable.userId, userId));
 
-    return account;
+    if (!account)
+        return undefined;
+
+    const teams = await db
+        .select({
+            team: TeamsTable,
+            role: TeamMembersTable.role,
+            wins: TeamRecordsView.wins,
+            losses: TeamRecordsView.losses,
+            draws: TeamRecordsView.draws,
+        })
+        .from(TeamMembersTable)
+        .innerJoin(TeamsTable, eq(TeamsTable.id, TeamMembersTable.teamId))
+        .innerJoin(TeamRecordsView, eq(TeamRecordsView.teamId, TeamsTable.id))
+        .where(eq(TeamMembersTable.userId, userId));
+
+    return { ...account, teams };
+}
+
+export async function getAccount(id: number) {
+    const account = await getAccountData(id);
+    return account
+        ? { ...account.AccountsTable, teams: account.teams }
+        : undefined;
 }
 
 export async function createAccount(id: number) {
-    const [exist] = await db
-        .select()
-        .from(AccountsTable)
-        .where(eq(AccountsTable.userId, id));
-
-    if (exist)
-        return;
-
     await db
         .insert(AccountsTable)
-        .values({ userId: id });
+        .values({ userId: id })
+        .onConflictDoNothing();
 }
 
 export default app;

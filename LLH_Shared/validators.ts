@@ -5,6 +5,10 @@ export const joinTeamValidator = z.object({
   id: z.coerce.number().int().positive(),
 });
 
+export const teamIdValidator = z.object({
+  teamId: z.coerce.number().int().positive(),
+});
+
 export const updateAccountValidator = z.strictObject({
   firstName: z.string().trim().max(50).nullable().optional(),
   lastName: z.string().trim().max(50).nullable().optional(),
