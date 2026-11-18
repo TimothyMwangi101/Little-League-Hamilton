@@ -4,9 +4,15 @@ import type { createTeamValidator, createUserValidator, loginValidator, resetPas
 
 export const regions = ["Hamilton Mountain", "Lower Hamilton"] as const
 export const sports = ["Basketball", "Baseball", "Football", "Soccer", "Bocce", "Tennis"] as const
-export const matchStatus = ["Accepted", "Rejected", "Pending"] as const
+export const matchStatus = ["Accepted", "Rejected", "Pending", "Completed", "Cancelled"] as const
 export const invitePolicies = ["Open", "InviteOnly"] as const
+export const roles = ["Member", "CoCaptain", "Captain"] as const;
 
+export type Roles = (typeof roles)[number];
+
+
+export const roleRank = { Member: 0, CoCaptain: 1, Captain: 2 } as const satisfies Record<Roles, number>;
+export const hasRole = (role: Roles, atLeast: Roles) => roleRank[role] >= roleRank[atLeast];
 
 export type Region = (typeof regions)[number]
 export type Sport = (typeof sports)[number]
