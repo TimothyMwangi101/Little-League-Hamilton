@@ -1,6 +1,6 @@
 import type z from "zod"
 import type { AccountsTable, MatchesTable, TeamMembersTable, TeamRecordsView, TeamsTable } from "../LLH_Server/src/db/schemas.ts"
-import type { createTeamValidator, createUserValidator, loginValidator, resetPasswordValidator } from "./validators.ts"
+import type { createTeamValidator, createUserValidator, loginValidator, resetPasswordValidator, scheduleMatchValidator } from "./validators.ts"
 
 export const regions = ["Hamilton Mountain", "Lower Hamilton"] as const
 export const sports = ["Basketball", "Baseball", "Football", "Soccer", "Bocce", "Tennis"] as const
@@ -31,6 +31,7 @@ export type TeamWithMembership = {
   draws: number;
 };
 export type CreateTeam = z.infer<typeof createTeamValidator>;
+export type ScheduleMatch = z.infer<typeof scheduleMatchValidator>;
 
 export type CreateUser = z.infer<typeof createUserValidator>;
 export type LoginCredentials = z.infer<typeof loginValidator>;

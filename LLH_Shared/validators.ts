@@ -62,6 +62,24 @@ export const createMatchValidator = z.object({
     .transform((date) => date.toISOString()),
 });
 
+export const scheduleMatchValidator = z.strictObject({
+  opponentTeamName: z.string().trim().min(1).max(50),
+  matchDate: z.iso.datetime().pipe(z.coerce.date())
+    .refine((date) => date > new Date(), {
+      message: "Match date must be in the future",
+    })
+    .transform((date) => date.toISOString()),
+});
+
+export const respondToMatchValidator = z.strictObject({
+  status: z.enum(["Accepted", "Rejected"]),
+});
+
+export const teamMatchIdValidator = z.object({
+  teamId: z.coerce.number().int().positive(),
+  matchId: z.coerce.number().int().positive(),
+});
+
 export const userQuery = z.object({
   id: z.coerce.number().optional(),
   email: z.email().optional(),

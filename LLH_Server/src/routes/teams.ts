@@ -1,11 +1,11 @@
 import { sValidator } from "@hono/standard-validator";
 import { Hono } from "hono";
-import { and, eq, notExists, sql } from "drizzle-orm";
+import { and, eq, inArray, notExists, or, sql } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
-import { TeamMembersTable, TeamRecordsView, TeamsTable, UsersTable } from "../db/schemas.ts";
+import { MatchesTable, TeamMembersTable, TeamRecordsView, TeamsTable, UsersTable } from "../db/schemas.ts";
 import db from "../db/db.ts";
 import { authenticate, refreshJWT, type UserPayloadEnv } from "../middleware/auth.ts";
-import { createTeamValidator, promoteCoCaptainParamsValidator, teamIdValidator } from "../../../LLH_Shared/validators.ts";
+import { createTeamValidator, promoteCoCaptainParamsValidator, respondToMatchValidator, scheduleMatchValidator, teamIdValidator, teamMatchIdValidator } from "../../../LLH_Shared/validators.ts";
 import { sendEmail } from "../lib/email.ts";
 
 const EMAIL_SENDER = "Little League Hamilton <onboarding@resend.dev>";
@@ -28,6 +28,198 @@ const app = new Hono<UserPayloadEnv>()
             .where(eq(TeamMembersTable.userId, userId));
 
         return ctx.json({ data: teams }, StatusCodes.OK);
+    })
+    .get("/:teamId/matches", sValidator("param", teamIdValidator, (result, ctx) => {
+        if (!result.success) {
+            console.error(result.error);
+            return ctx.json({ error: "Invalid team id" }, StatusCodes.BAD_REQUEST);
+        }
+    }), async (ctx) => {
+        const { id: userId } = ctx.get("jwtPayload");
+        const { teamId } = ctx.req.valid("param");
+        const [membership] = await db
+            .select({ role: TeamMembersTable.role })
+            .from(TeamMembersTable)
+            .where(and(
+                eq(TeamMembersTable.teamId, teamId),
+                eq(TeamMembersTable.userId, userId),
+            ));
+
+        if (!membership)
+            return ctx.json({ error: "Team membership required" }, StatusCodes.FORBIDDEN);
+
+        const matches = await db
+            .select({
+                match: MatchesTable,
+                otherTeamName: TeamsTable.name,
+            })
+            .from(MatchesTable)
+            .innerJoin(
+                TeamsTable,
+                sql`${TeamsTable.id} = CASE WHEN ${MatchesTable.challengerId} = ${teamId} THEN ${MatchesTable.opponentId} ELSE ${MatchesTable.challengerId} END`,
+            )
+            .where(or(
+                eq(MatchesTable.challengerId, teamId),
+                eq(MatchesTable.opponentId, teamId),
+            ))
+            .orderBy(MatchesTable.matchDate);
+
+        return ctx.json({
+            data: matches.map(({ match, otherTeamName }) => ({
+                ...match,
+                otherTeamName,
+                isChallenger: match.challengerId === teamId,
+            })),
+        }, StatusCodes.OK);
+    })
+    .post("/:teamId/matches", sValidator("param", teamIdValidator, (result, ctx) => {
+        if (!result.success) {
+            console.error(result.error);
+            return ctx.json({ error: "Invalid team id" }, StatusCodes.BAD_REQUEST);
+        }
+    }), sValidator("json", scheduleMatchValidator, (result, ctx) => {
+        if (!result.success) {
+            console.error(result.error);
+            return ctx.json({ error: "Invalid match details" }, StatusCodes.BAD_REQUEST);
+        }
+    }), async (ctx) => {
+        const { id: userId } = ctx.get("jwtPayload");
+        const { teamId } = ctx.req.valid("param");
+        const { opponentTeamName, matchDate } = ctx.req.valid("json");
+        const [challenger] = await db
+            .select({ id: TeamsTable.id, name: TeamsTable.name, sport: TeamsTable.sport })
+            .from(TeamsTable)
+            .where(eq(TeamsTable.id, teamId));
+
+        if (!challenger)
+            return ctx.json({ error: "Team not found" }, StatusCodes.NOT_FOUND);
+
+        const [membership] = await db
+            .select({ role: TeamMembersTable.role })
+            .from(TeamMembersTable)
+            .where(and(
+                eq(TeamMembersTable.teamId, teamId),
+                eq(TeamMembersTable.userId, userId),
+            ));
+
+        if (membership?.role !== "Captain" && membership?.role !== "CoCaptain")
+            return ctx.json({ error: "Only a captain or co-captain can schedule a match" }, StatusCodes.FORBIDDEN);
+
+        const [opponent] = await db
+            .select({ id: TeamsTable.id, name: TeamsTable.name, sport: TeamsTable.sport })
+            .from(TeamsTable)
+            .where(eq(TeamsTable.name, opponentTeamName));
+
+        if (!opponent)
+            return ctx.json({ error: "No team has that exact name" }, StatusCodes.NOT_FOUND);
+
+        if (opponent.id === challenger.id)
+            return ctx.json({ error: "You cannot schedule a match against your own team" }, StatusCodes.BAD_REQUEST);
+
+        if (opponent.sport !== challenger.sport)
+            return ctx.json({ error: "Teams must play the same sport" }, StatusCodes.CONFLICT);
+
+        const [match] = await db
+            .insert(MatchesTable)
+            .values({
+                challengerId: challenger.id,
+                opponentId: opponent.id,
+                sport: challenger.sport,
+                status: "Pending",
+                matchDate,
+            })
+            .returning();
+
+        if (!match)
+            return ctx.json({ error: "Could not schedule the match" }, StatusCodes.INTERNAL_SERVER_ERROR);
+
+        const opponentLeaders = await db
+            .select({
+                role: TeamMembersTable.role,
+                email: UsersTable.email,
+            })
+            .from(TeamMembersTable)
+            .innerJoin(UsersTable, eq(UsersTable.id, TeamMembersTable.userId))
+            .where(and(
+                eq(TeamMembersTable.teamId, opponent.id),
+                inArray(TeamMembersTable.role, ["Captain", "CoCaptain"]),
+            ));
+        const notifiedRoles = new Set(opponentLeaders.map(({ role }) => role));
+        const missingRoles = (["Captain", "CoCaptain"] as const)
+            .filter((role) => !notifiedRoles.has(role));
+        const emailResults = await Promise.allSettled(opponentLeaders.map(({ email }) =>
+            sendEmail(
+                EMAIL_SENDER,
+                email,
+                `${challenger.name} scheduled a ${challenger.sport} match`,
+                `${challenger.name} has scheduled a match with ${opponent.name} for ${new Date(matchDate).toLocaleString("en-US", { dateStyle: "full", timeStyle: "short", timeZone: "UTC" })} UTC. Please accept or reject this match from your team page.`,
+            ),
+        ));
+        const failedEmails = emailResults.filter((result) => result.status === "rejected");
+        failedEmails.forEach((result) => console.error("Match scheduling notification failed", result.reason));
+        const warnings = [];
+        if (missingRoles.length > 0)
+            warnings.push(`No ${missingRoles.map((role) => role === "CoCaptain" ? "co-captain" : "captain").join(" and ")} email address was found`);
+        if (failedEmails.length > 0)
+            warnings.push(`${failedEmails.length} notification email${failedEmails.length === 1 ? "" : "s"} could not be sent`);
+
+        return ctx.json({
+            data: match,
+            ...(warnings.length > 0 ? { warning: `Match scheduled, but ${warnings.join(" and ")}` } : {}),
+        }, StatusCodes.CREATED);
+    })
+    .patch("/:teamId/matches/:matchId/respond", sValidator("param", teamMatchIdValidator, (result, ctx) => {
+        if (!result.success) {
+            console.error(result.error);
+            return ctx.json({ error: "Invalid match id" }, StatusCodes.BAD_REQUEST);
+        }
+    }), sValidator("json", respondToMatchValidator, (result, ctx) => {
+        if (!result.success) {
+            console.error(result.error);
+            return ctx.json({ error: "Invalid match response" }, StatusCodes.BAD_REQUEST);
+        }
+    }), async (ctx) => {
+        const { id: userId } = ctx.get("jwtPayload");
+        const { teamId, matchId } = ctx.req.valid("param");
+        const { status } = ctx.req.valid("json");
+        const [match] = await db
+            .select()
+            .from(MatchesTable)
+            .where(eq(MatchesTable.id, matchId));
+
+        if (!match)
+            return ctx.json({ error: "Match not found" }, StatusCodes.NOT_FOUND);
+
+        if (match.opponentId !== teamId)
+            return ctx.json({ error: "Only the opposing team can respond to this match" }, StatusCodes.FORBIDDEN);
+
+        const [membership] = await db
+            .select({ role: TeamMembersTable.role })
+            .from(TeamMembersTable)
+            .where(and(
+                eq(TeamMembersTable.teamId, match.opponentId),
+                eq(TeamMembersTable.userId, userId),
+            ));
+
+        if (membership?.role !== "Captain" && membership?.role !== "CoCaptain")
+            return ctx.json({ error: "Only the opposing team's captain or co-captain can respond" }, StatusCodes.FORBIDDEN);
+
+        if (match.status !== "Pending")
+            return ctx.json({ error: "This match is no longer awaiting a response" }, StatusCodes.CONFLICT);
+
+        const [updatedMatch] = await db
+            .update(MatchesTable)
+            .set({ status })
+            .where(and(
+                eq(MatchesTable.id, matchId),
+                eq(MatchesTable.status, "Pending"),
+            ))
+            .returning();
+
+        if (!updatedMatch)
+            return ctx.json({ error: "This match is no longer awaiting a response" }, StatusCodes.CONFLICT);
+
+        return ctx.json({ data: updatedMatch }, StatusCodes.OK);
     })
     .post("/create", sValidator("json", createTeamValidator, (result, ctx) => {
         if (!result.success) {
