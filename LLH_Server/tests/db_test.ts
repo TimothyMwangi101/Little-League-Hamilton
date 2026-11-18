@@ -10,7 +10,6 @@ if (!db)
 
 migrate(db, {
   migrationsFolder: "./src/db/migrations",
-  migrationsSchema: "./src/db/schemas.ts",
 });
 
 export default db;

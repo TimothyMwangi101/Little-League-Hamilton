@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import type { InferResponseType } from 'hono/client'
 import { StatusCodes } from 'http-status-codes'
 import { hasRole } from '@shared/types'
+import { useNavigate } from 'react-router'
 import client from '../../client'
 
-type Teams = InferResponseType<typeof client.teams.$get, StatusCodes.OK>['data']
 type Account = InferResponseType<typeof client.account.$get, StatusCodes.OK>['data']
 
-function displayInvitePolicy(invitePolicy: Teams[number]['team']['invitePolicy']) {
+function displayInvitePolicy(invitePolicy: Account['teams'][number]['team']['invitePolicy']) {
   return invitePolicy === 'Open' ? 'Open team' : 'Invite only'
 }
 
@@ -20,99 +20,70 @@ function formatDate(date: string) {
 }
 
 export default function TeamPage() {
-  const [teams, setTeams] = useState<Teams>([])
+  const navigate = useNavigate()
   const [account, setAccount] = useState<Account | null>(null)
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null)
   const [query, setQuery] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
-  const [accountStatus, setAccountStatus] = useState<'checking' | 'guest' | 'member' | 'unavailable'>('checking')
   const [actionNotice, setActionNotice] = useState('')
   const [reloadCount, setReloadCount] = useState(0)
 
   useEffect(() => {
     let isCurrent = true
 
-    async function loadTeams() {
+    async function loadAccount() {
       setIsLoading(true)
       setLoadError('')
 
-      try {
-        const response = await client.teams.$get()
-        const result = await response.json()
-
-        if (!response.ok || 'error' in result)
-          throw new Error('error' in result ? String(result.error) : 'Unable to load teams.')
-
-        if (isCurrent) {
-          setTeams(result.data)
-          setSelectedTeamId((current) =>
-            current !== null && result.data.some(({ team }) => team.id === current)
-              ? current
-              : result.data[0]?.team.id ?? null,
-          )
-        }
-      } catch (error) {
-        console.error('Unable to load teams', error)
-        if (isCurrent) setLoadError('Unable to load teams. Please try again.')
-      } finally {
-        if (isCurrent) setIsLoading(false)
-      }
-    }
-
-    async function loadAccount() {
       try {
         const response = await client.account.$get()
         const statusCode: number = response.status
 
         if (statusCode === StatusCodes.UNAUTHORIZED) {
-          if (isCurrent) {
-            setAccount(null)
-            setAccountStatus('guest')
-          }
+          await navigate('/login', { replace: true })
           return
         }
 
         const result = await response.json()
         if (!response.ok || 'error' in result)
-          throw new Error('error' in result ? String(result.error) : 'Unable to check team membership.')
+          throw new Error('error' in result ? String(result.error) : 'Unable to load your teams.')
 
         if (isCurrent) {
           setAccount(result.data)
-          setAccountStatus('member')
+          setSelectedTeamId((current) =>
+            current !== null && result.data.teams.some(({ team }) => team.id === current)
+              ? current
+              : result.data.teams[0]?.team.id ?? null,
+          )
         }
       } catch (error) {
-        console.error('Unable to check team membership', error)
-        if (isCurrent) {
-          setAccount(null)
-          setAccountStatus('unavailable')
-        }
+        console.error('Unable to load your teams', error)
+        if (isCurrent) setLoadError('Unable to load your teams. Please try again.')
+      } finally {
+        if (isCurrent) setIsLoading(false)
       }
     }
 
-    void loadTeams()
     void loadAccount()
 
     return () => {
       isCurrent = false
     }
-  }, [reloadCount])
+  }, [navigate, reloadCount])
 
   const filteredTeams = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
-    return teams.filter(({ team }) =>
+    return (account?.teams ?? []).filter(({ team }) =>
       team.name.toLowerCase().includes(normalizedQuery) ||
       team.sport.toLowerCase().includes(normalizedQuery) ||
       String(team.id).includes(normalizedQuery),
     )
-  }, [query, teams])
+  }, [account, query])
 
-  const selectedTeam = teams.find(({ team }) => team.id === selectedTeamId) ?? null
+  const selectedTeam = account?.teams.find(({ team }) => team.id === selectedTeamId) ?? null
   const currentMembership = selectedTeam
-    ? account?.teams.find(({ team }) => team.id === selectedTeam.team.id) ?? null
-    : null
-  const canManageTeam = currentMembership !== null &&
-    hasRole(currentMembership.role, 'CoCaptain')
+  const canManageTeam = currentMembership !== null && hasRole(currentMembership.role, 'CoCaptain')
   const currentMemberName = account
     ? [account.AccountsTable.firstName, account.AccountsTable.lastName].filter(Boolean).join(' ') || account.email
     : ''
@@ -124,35 +95,29 @@ export default function TeamPage() {
           <div>
             <p className="mb-1 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary">
               <span aria-hidden="true" className="material-symbols-outlined">groups</span>
-              Hamilton Little League
+              Your team access
             </p>
-            <h1 className="font-heading text-3xl font-bold leading-tight sm:text-4xl">Teams</h1>
-            <p className="mt-2 text-muted">Browse public team details and view your membership.</p>
+            <h1 className="font-heading text-3xl font-bold leading-tight sm:text-4xl">My Teams</h1>
+            <p className="mt-2 text-muted">Team details are available to team members only.</p>
           </div>
-          <label className="relative w-full sm:max-w-xs">
+          {account && account.teams.length > 1 && <label className="relative w-full sm:max-w-xs">
             <span aria-hidden="true" className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-xl text-muted">
               search
             </span>
-            <span className="sr-only">Search teams</span>
+            <span className="sr-only">Search your teams</span>
             <input
               className="w-full border-2 border-text-main bg-white py-3 pl-10 pr-3 focus:outline-none focus:shadow-hard"
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search teams or sports"
+              placeholder="Search your teams"
               type="search"
               value={query}
             />
-          </label>
+          </label>}
         </header>
-
-        {accountStatus === 'unavailable' && (
-          <p className="border-2 border-accent bg-white p-4 text-sm" role="status">
-            We couldn’t verify your team membership. Team details remain available, but member-specific badges and management controls are hidden.
-          </p>
-        )}
 
         {isLoading ? (
           <p aria-live="polite" className="border-2 border-text-main bg-white p-8 text-center" role="status">
-            Loading teams...
+            Verifying team membership...
           </p>
         ) : loadError ? (
           <div className="border-2 border-text-main bg-white p-8 text-center">
@@ -165,21 +130,24 @@ export default function TeamPage() {
               Retry
             </button>
           </div>
-        ) : teams.length === 0 ? (
-          <p className="border-2 border-text-main bg-white p-8 text-center">
-            No teams are available yet.
-          </p>
-        ) : (
+        ) : account?.teams.length === 0 ? (
+          <section aria-labelledby="team-access-required" className="border-2 border-text-main bg-white p-6 shadow-hard">
+            <h2 className="font-heading text-2xl font-bold" id="team-access-required">Team membership required</h2>
+            <p className="mt-2 text-muted">
+              This page contains private team information and is available only to members of a team.
+            </p>
+          </section>
+        ) : account ? (
           <div className="grid gap-8 lg:grid-cols-[minmax(16rem,0.8fr)_minmax(0,2fr)]">
             <section aria-labelledby="team-list-heading" className="h-fit border-2 border-text-main bg-white shadow-hard">
               <h2 className="border-b-2 border-text-main bg-primary px-4 py-3 font-heading text-xl font-bold uppercase text-white" id="team-list-heading">
-                Team Directory
+                Your Teams
               </h2>
               {filteredTeams.length > 0 ? (
                 <ul className="divide-y-2 divide-text-main/15">
-                  {filteredTeams.map(({ team, wins, losses, draws }) => {
+                  {filteredTeams.map((membership) => {
+                    const { team, wins, losses, draws } = membership
                     const isSelected = selectedTeam?.team.id === team.id
-                    const membership = account?.teams.find(({ team: memberTeam }) => memberTeam.id === team.id)
                     return (
                       <li key={team.id}>
                         <button
@@ -193,11 +161,9 @@ export default function TeamPage() {
                         >
                           <span className="flex items-start justify-between gap-2">
                             <span className="font-heading text-lg font-bold">{team.name}</span>
-                            {membership && (
-                              <span className="shrink-0 border border-text-main bg-primary px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
-                                Member
-                              </span>
-                            )}
+                            <span className="shrink-0 border border-text-main bg-primary px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                              {membership.role === 'CoCaptain' ? 'Co-captain' : membership.role}
+                            </span>
                           </span>
                           <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
                             <span>{team.sport}</span>
@@ -309,17 +275,8 @@ export default function TeamPage() {
                         The current server API only provides your own team membership, not the complete roster.
                       </p>
                     </div>
-                  ) : (
-                    <p className="p-5 text-sm text-muted">
-                      Full roster details aren’t available from the current server API. Team information is public; sign in to see your membership badge when you’re on this team.
-                    </p>
-                  )}
-                  {accountStatus === 'guest' && (
-                    <p className="border-t border-text-main/15 px-5 py-3 text-sm text-muted">
-                      Sign in to see whether you're a member of this team.
-                    </p>
-                  )}
-                  {currentMembership === null && canManageTeam === false && accountStatus === 'member' && (
+                  ) : null}
+                  {currentMembership?.role === 'Member' && (
                     <p className="border-t border-text-main/15 px-5 py-3 text-sm text-muted">
                       Invite and settings controls are available only to this team’s captain and co-captain.
                     </p>
@@ -328,7 +285,7 @@ export default function TeamPage() {
               </div>
             )}
           </div>
-        )}
+        ) : null}
       </div>
     </main>
   )

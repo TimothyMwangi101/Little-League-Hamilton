@@ -46,11 +46,13 @@ function Nav() {
     }
   }, [])
 
-  const navLinks = links.map((link) =>
-    link.label === 'Login'
-      ? { ...link, label: isLoggedIn ? 'Account' : 'Login', to: isLoggedIn ? '/account' : '/login' }
-      : link
-  )
+  const navLinks = links
+    .filter((link) => link.label !== 'Teams' || isLoggedIn)
+    .map((link) =>
+      link.label === 'Login'
+        ? { ...link, label: isLoggedIn ? 'Account' : 'Login', to: isLoggedIn ? '/account' : '/login' }
+        : link,
+    )
 
   async function handleLogout() {
     setIsLoggingOut(true)
