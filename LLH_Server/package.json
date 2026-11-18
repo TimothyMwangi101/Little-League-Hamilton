@@ -14,11 +14,11 @@
     "@hono/node-server": "^2.1.1",
     "@hono/standard-validator": "^0.4.0",
     "dotenv": "^18.0.9",
-    "drizzle-orm": "^1.0.0-rc.5",
+    "drizzle-orm": "1.0.0-rc.5",
     "resend": "^6.37.0"
   },
   "devDependencies": {
-    "drizzle-kit": "^1.0.0-rc.5",
+    "drizzle-kit": "1.0.0-rc.5",
     "tsx": "^4.23.15",
     "vitest": "^5.0.5"
   }

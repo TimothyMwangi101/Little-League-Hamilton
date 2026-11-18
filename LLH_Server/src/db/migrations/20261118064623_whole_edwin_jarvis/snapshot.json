@@ -1,9 +1,9 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "2f9d9a83-0cd2-41cf-bb8d-4f1f3575e2ea",
+  "id": "e388e796-bb96-4bb4-aa78-0ba01e24cda8",
   "prevIds": [
-    "f81bb6dc-182d-4351-b1de-5053cec16ff7"
+    "ef9e5299-4d36-4eb1-be28-7e0b4f572ef3"
   ],
   "ddl": [
     {
@@ -20,6 +20,14 @@
     },
     {
       "name": "matches",
+      "entityType": "tables"
+    },
+    {
+      "name": "team_members",
+      "entityType": "tables"
+    },
+    {
+      "name": "match_players",
       "entityType": "tables"
     },
     {
@@ -64,7 +72,7 @@
     },
     {
       "type": "integer",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -106,59 +114,9 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "(json_array())",
+      "default": "'[]'",
       "generated": null,
       "name": "prefers",
-      "entityType": "columns",
-      "table": "accounts"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "0",
-      "generated": null,
-      "name": "goals",
-      "entityType": "columns",
-      "table": "accounts"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "0",
-      "generated": null,
-      "name": "assists",
-      "entityType": "columns",
-      "table": "accounts"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "0",
-      "generated": null,
-      "name": "wins",
-      "entityType": "columns",
-      "table": "accounts"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "0",
-      "generated": null,
-      "name": "losses",
-      "entityType": "columns",
-      "table": "accounts"
-    },
-    {
-      "type": "integer",
-      "notNull": false,
-      "autoincrement": false,
-      "default": "NULL",
-      "generated": null,
-      "name": "team",
       "entityType": "columns",
       "table": "accounts"
     },
@@ -179,26 +137,6 @@
       "default": null,
       "generated": null,
       "name": "id",
-      "entityType": "columns",
-      "table": "teams"
-    },
-    {
-      "type": "integer",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "coCaptainId",
-      "entityType": "columns",
-      "table": "teams"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "captainId",
       "entityType": "columns",
       "table": "teams"
     },
@@ -226,7 +164,7 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
-      "default": "'Basketball'",
+      "default": null,
       "generated": null,
       "name": "sport",
       "entityType": "columns",
@@ -313,6 +251,116 @@
       "table": "matches"
     },
     {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "challengerScore",
+      "entityType": "columns",
+      "table": "matches"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "opponentScore",
+      "entityType": "columns",
+      "table": "matches"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "teamId",
+      "entityType": "columns",
+      "table": "team_members"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "userId",
+      "entityType": "columns",
+      "table": "team_members"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_DATE)",
+      "generated": null,
+      "name": "joinedAt",
+      "entityType": "columns",
+      "table": "team_members"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'Member'",
+      "generated": null,
+      "name": "role",
+      "entityType": "columns",
+      "table": "team_members"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "matchId",
+      "entityType": "columns",
+      "table": "match_players"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "userId",
+      "entityType": "columns",
+      "table": "match_players"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "teamId",
+      "entityType": "columns",
+      "table": "match_players"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "goals",
+      "entityType": "columns",
+      "table": "match_players"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "0",
+      "generated": null,
+      "name": "assists",
+      "entityType": "columns",
+      "table": "match_players"
+    },
+    {
       "columns": [
         "userId"
       ],
@@ -326,51 +374,6 @@
       "name": "fk_accounts_userId_users_id_fk",
       "entityType": "fks",
       "table": "accounts"
-    },
-    {
-      "columns": [
-        "team"
-      ],
-      "tableTo": "teams",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": false,
-      "name": "fk_accounts_team_teams_id_fk",
-      "entityType": "fks",
-      "table": "accounts"
-    },
-    {
-      "columns": [
-        "coCaptainId"
-      ],
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": false,
-      "name": "fk_teams_coCaptainId_users_id_fk",
-      "entityType": "fks",
-      "table": "teams"
-    },
-    {
-      "columns": [
-        "captainId"
-      ],
-      "tableTo": "users",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "nameExplicit": false,
-      "name": "fk_teams_captainId_users_id_fk",
-      "entityType": "fks",
-      "table": "teams"
     },
     {
       "columns": [
@@ -404,11 +407,115 @@
     },
     {
       "columns": [
+        "teamId"
+      ],
+      "tableTo": "teams",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_team_members_teamId_teams_id_fk",
+      "entityType": "fks",
+      "table": "team_members"
+    },
+    {
+      "columns": [
+        "userId"
+      ],
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_team_members_userId_users_id_fk",
+      "entityType": "fks",
+      "table": "team_members"
+    },
+    {
+      "columns": [
+        "matchId"
+      ],
+      "tableTo": "matches",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_match_players_matchId_matches_id_fk",
+      "entityType": "fks",
+      "table": "match_players"
+    },
+    {
+      "columns": [
+        "userId"
+      ],
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_match_players_userId_users_id_fk",
+      "entityType": "fks",
+      "table": "match_players"
+    },
+    {
+      "columns": [
+        "teamId"
+      ],
+      "tableTo": "teams",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "nameExplicit": false,
+      "name": "fk_match_players_teamId_teams_id_fk",
+      "entityType": "fks",
+      "table": "match_players"
+    },
+    {
+      "columns": [
+        "teamId",
+        "userId"
+      ],
+      "nameExplicit": false,
+      "name": "team_members_pk",
+      "entityType": "pks",
+      "table": "team_members"
+    },
+    {
+      "columns": [
+        "matchId",
+        "userId"
+      ],
+      "nameExplicit": false,
+      "name": "match_players_pk",
+      "entityType": "pks",
+      "table": "match_players"
+    },
+    {
+      "columns": [
         "id"
       ],
       "nameExplicit": false,
       "name": "users_pk",
       "table": "users",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "userId"
+      ],
+      "nameExplicit": false,
+      "name": "accounts_pk",
+      "table": "accounts",
       "entityType": "pks"
     },
     {
@@ -431,6 +538,76 @@
     },
     {
       "columns": [
+        {
+          "value": "challengerId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "matches_challenger_idx",
+      "entityType": "indexes",
+      "table": "matches"
+    },
+    {
+      "columns": [
+        {
+          "value": "opponentId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "matches_opponent_idx",
+      "entityType": "indexes",
+      "table": "matches"
+    },
+    {
+      "columns": [
+        {
+          "value": "userId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "team_members_user_idx",
+      "entityType": "indexes",
+      "table": "team_members"
+    },
+    {
+      "columns": [
+        {
+          "value": "teamId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "team_members_team_idx",
+      "entityType": "indexes",
+      "table": "team_members"
+    },
+    {
+      "columns": [
+        {
+          "value": "userId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "match_players_user_idx",
+      "entityType": "indexes",
+      "table": "match_players"
+    },
+    {
+      "columns": [
         "email"
       ],
       "nameExplicit": false,
@@ -446,6 +623,30 @@
       "name": "teams_name_unique",
       "entityType": "uniques",
       "table": "teams"
+    },
+    {
+      "value": "\"challengerId\" <> \"opponentId\"",
+      "name": "no dups",
+      "entityType": "checks",
+      "table": "matches"
+    },
+    {
+      "value": "\"challengerScore\" >= 0 AND \"opponentScore\" >= 0",
+      "name": "matches_scores_non_negative",
+      "entityType": "checks",
+      "table": "matches"
+    },
+    {
+      "value": "\"status\" <> 'Completed' OR (\"challengerScore\" IS NOT NULL AND \"opponentScore\" IS NOT NULL)",
+      "name": "matches_completed_has_scores",
+      "entityType": "checks",
+      "table": "matches"
+    },
+    {
+      "value": "\"goals\" >= 0 AND \"assists\" >= 0",
+      "name": "match_players_non_negative",
+      "entityType": "checks",
+      "table": "match_players"
     }
   ],
   "renames": []

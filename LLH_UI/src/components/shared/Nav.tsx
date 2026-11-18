@@ -6,6 +6,7 @@ const links = [
   { label: 'Dashboard', to: '/', icon: 'dashboard' },
   { label: 'Map', to: '/map', icon: 'location_on' },
   { label: 'Search', to: '/search', icon: 'search' },
+  { label: 'Teams', to: '/teams', icon: 'groups' },
   { label: 'Login', to: '/login', icon: 'person' },
 ] as const
 
@@ -45,11 +46,13 @@ function Nav() {
     }
   }, [])
 
-  const navLinks = links.map((link) =>
-    link.label === 'Login'
-      ? { ...link, label: isLoggedIn ? 'Account' : 'Login', to: isLoggedIn ? '/account' : '/login' }
-      : link
-  )
+  const navLinks = links
+    .filter((link) => link.label !== 'Teams' || isLoggedIn)
+    .map((link) =>
+      link.label === 'Login'
+        ? { ...link, label: isLoggedIn ? 'Account' : 'Login', to: isLoggedIn ? '/account' : '/login' }
+        : link,
+    )
 
   async function handleLogout() {
     setIsLoggingOut(true)
@@ -81,7 +84,7 @@ function Nav() {
             </span>
           </span>
           <h1 className="hidden truncate font-heading min-[480px]:block text-xl font-bold uppercase">
-            Hamilton Little League
+            Little League Hamilton
           </h1>
         </Link>
 

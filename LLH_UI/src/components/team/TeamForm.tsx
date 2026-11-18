@@ -2,14 +2,19 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { createTeamValidator } from "@shared/validators"
-import { invitePolicies, sports, type CreateTeam, type Sport, type Team } from "@shared/types"
+import { invitePolicies, sports } from "@shared/types"
 import Button from "../shared/Button";
 import client from "../../client"
+import type { InferRequestType } from "hono/client"
+import type { TeamMembership } from "../account/AccountPage"
 
 type TeamFormProps = {
     onClose: () => void
-    onTeamCreated: (team: Team) => void
+    onTeamCreated: (team: TeamMembership) => void
 }
+
+type CreateTeamRequest = InferRequestType<typeof client.team.create.$post>["json"]
+type Sport = (typeof sports)[number]
 
 const sportIcons: Record<Sport, string> = {
     Basketball: "sports_basketball",
@@ -36,7 +41,7 @@ export default function CreateTeam({ onClose, onTeamCreated }: TeamFormProps) {
         dialog.showModal()
     }, [])
 
-    async function createTeam(values: CreateTeam) {
+    async function createTeam(values: CreateTeamRequest) {
         clearErrors()
         setCreateTeamError("")
 
@@ -49,7 +54,7 @@ export default function CreateTeam({ onClose, onTeamCreated }: TeamFormProps) {
                 return
             }
 
-            onTeamCreated(result.data)
+            onTeamCreated({ ...result.data, role: "Captain" })
             onClose()
         } catch (error) {
             console.error(error)

@@ -20,8 +20,8 @@ afterAll(() => {
   vi.unstubAllEnvs();
 });
 
-const jsonRequest = (body: unknown): RequestInit => ({
-  method: "POST",
+const jsonRequest = (body: unknown, method = "POST"): RequestInit => ({
+  method,
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify(body),
 });
@@ -107,8 +107,8 @@ describe("auth routes", () => {
     );
 
     const response = await authApp.request(
-      "/reset-password",
-      jsonRequest({ email: "reset@email.com", newPassword: "new-password" }),
+      "/resetPassword",
+      jsonRequest({ email: "reset@email.com", password: "new-password" }, "PATCH"),
     );
     const oldPasswordResponse = await authApp.request(
       "/login",
@@ -127,8 +127,8 @@ describe("auth routes", () => {
 
   it("rejects a password reset for an unknown email", async () => {
     const response = await authApp.request(
-      "/reset-password",
-      jsonRequest({ email: "unknown@email.com", newPassword: "new-password" }),
+      "/resetPassword",
+      jsonRequest({ email: "unknown@email.com", password: "new-password" }, "PATCH"),
     );
 
     expect(response.status).toBe(401);
