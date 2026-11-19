@@ -15,6 +15,9 @@
 
         "build:ui": "npm run build --workspace=@llh/ui",
         "build:server": "npm run build --workspace=@llh/server",
+        
+        "test:ui": "npm run test --workspace=@llh/ui",
+        "test:server": "npm run test --workspace=@llh/server",
 
         "lint:ui": "npm run lint --workspace=@llh/ui",
         "lint:server": "npm run lint --workspace=@llh/server",
@@ -36,6 +39,7 @@
         "@types/node": "^26.6.6",
         "oxlint": "^1.91.0",
         "oxlint-tsgolint": "^7.0.2005",
-        "typescript": "^7.0.2"
+        "typescript": "^7.0.2",
+        "vitest": "^5.1.1"
     }
 }
